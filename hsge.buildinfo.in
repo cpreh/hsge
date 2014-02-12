@@ -1,0 +1,1 @@
+ld-options: -Wl,-rpath=@SGE_RPATH@

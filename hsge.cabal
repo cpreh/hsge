@@ -4,8 +4,8 @@
 name:                hsge
 version:             0.1.0.0
 synopsis:            sge bindings
--- description:
--- license:
+description:         C bindings for SGE
+license:             LGPL
 author:              Philipp Reh
 maintainer:          sefi@s-e-f-i.de
 -- copyright:
@@ -15,11 +15,11 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  build-tools: c2hs
-  exposed-modules: SGE.Systems
-  hs-source-dirs: src
-  -- other-modules:
+  exposed-modules:     SGE.Input, SGE.Renderer, SGE.Signal, SGE.Systems, SGE.Window
+  -- TODO: Make this configurable!
+  other-modules:       SGE.Types, SGE.Utils
   -- other-extensions:
   build-depends:       base >=4.6 && <4.7
-  -- hs-source-dirs:
+  hs-source-dirs:      src
   default-language:    Haskell2010
+  extra-libraries:     sgec
