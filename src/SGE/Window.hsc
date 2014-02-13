@@ -41,7 +41,7 @@ type RawSystemPtr = Ptr SystemStruct
 
 type SystemPtr = ForeignPtr SystemStruct
 
-foreign import ccall unsafe "sgec_window_system_poll" sgeWindowPoll :: RawSystemPtr -> IO (CInt)
+foreign import ccall safe "sgec_window_system_poll" sgeWindowPoll :: RawSystemPtr -> IO (CInt)
 
 poll :: SystemPtr -> IO (Bool)
 poll system =

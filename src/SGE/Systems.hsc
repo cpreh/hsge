@@ -2,7 +2,9 @@ module SGE.Systems (
 	InstancePtr,
 	create,
 	createExn,
-	renderer
+	keyboard,
+	renderer,
+	windowSystem
 )
 
 #include <sgec/systems/instance.h>
@@ -18,6 +20,8 @@ import Foreign.Marshal.Utils ( maybePeek )
 import Foreign.Ptr ( FunPtr, Ptr )
 
 import System.IO.Unsafe ( unsafePerformIO )
+
+import SGE.Input ( RawKeyboardPtr, KeyboardPtr )
 
 import SGE.Renderer ( RawDevicePtr, DevicePtr )
 
@@ -55,3 +59,9 @@ foreign import ccall unsafe "sgec_systems_instance_window_system" sgeSystemsWind
 windowSystem :: InstancePtr -> SystemPtr
 windowSystem inst =
 	unsafePerformIO $ withForeignPtr inst $ \ptr -> newForeignPtr_ (sgeSystemsWindowSystem ptr)
+
+foreign import ccall unsafe "sgec_systems_instance_keyboard" sgeSystemsKeyboard :: RawInstancePtr -> RawKeyboardPtr
+
+keyboard :: InstancePtr -> KeyboardPtr
+keyboard inst =
+	unsafePerformIO $ withForeignPtr inst $ \ptr -> newForeignPtr_ (sgeSystemsKeyboard ptr)
