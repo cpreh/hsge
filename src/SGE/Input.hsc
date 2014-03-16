@@ -74,6 +74,7 @@ foreign import ccall unsafe "wrapper" wrapKeyCallback :: WrappedKeyCallback -> I
 
 type KeyCallback = KeyboardKey -> KeyboardKeyStatus -> IO ()
 
+-- TODO: We need to free the wrapped key callback
 connectKeyCallback :: KeyboardPtr -> KeyCallback -> IO (Maybe ConnectionPtr)
 connectKeyCallback keyboard callback =
 	withForeignPtr keyboard $ \kp ->
