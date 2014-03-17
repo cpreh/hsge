@@ -19,7 +19,9 @@ import Foreign.Marshal.Array ( withArray )
 
 import Foreign.Ptr ( Ptr )
 
-import SGE.Renderer ( ContextPtr, DevicePtr, PlanarTexturePtr, RawContextPtr, RawDevicePtr, RawPlanarTexturePtr )
+import SGE.Renderer ( ContextPtr, DevicePtr, RawContextPtr, RawDevicePtr )
+
+import SGE.Texture ( PartPtr, RawPartPtr )
 
 import SGE.Utils ( toCInt )
 
@@ -28,7 +30,7 @@ data RawObject = RawObject {
 	y :: CInt,
 	w :: CInt,
 	h :: CInt,
-	tex :: RawPlanarTexturePtr
+	tex :: RawPartPtr
 } deriving(Eq, Show)
 
 data Object = Object {
@@ -36,7 +38,7 @@ data Object = Object {
 	pos_y :: Int,
 	width :: Int,
 	height :: Int,
-	texture :: PlanarTexturePtr
+	texture :: PartPtr
 } deriving(Eq, Show)
 
 #let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)

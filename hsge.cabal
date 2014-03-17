@@ -15,7 +15,7 @@ extra-source-files:  configure, configure.ac, hsge.buildinfo.in
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     SGE.Image2D, SGE.Input, SGE.Renderer, SGE.Signal, SGE.Sprite, SGE.Systems, SGE.Window
+  exposed-modules:     SGE.Image2D, SGE.Input, SGE.Renderer, SGE.Signal, SGE.Sprite, SGE.Systems, SGE.Texture, SGE.Window
   other-modules:       SGE.Types, SGE.Utils
 --  cc-options:          "-std=c99"
   build-depends:       base >=4.6 && <4.7
