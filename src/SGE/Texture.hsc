@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module SGE.Texture (
 	PartPtr,
 	RawPartPtr,
@@ -10,6 +12,12 @@ module SGE.Texture (
 
 where
 
+import Control.Monad ( (>>=) )
+
+import Data.Function ( ($) )
+
+import Data.Maybe ( Maybe )
+
 import Foreign ( ForeignPtr, newForeignPtr, withForeignPtr )
 
 import Foreign.Ptr ( FunPtr, Ptr )
@@ -19,6 +27,8 @@ import Foreign.Marshal.Utils ( maybePeek )
 import SGE.Renderer ( PlanarTexturePtr, RawPlanarTexturePtr )
 
 import SGE.Utils ( failMaybe )
+
+import System.IO ( IO )
 
 data PartStruct = PartStruct
 type RawPartPtr = Ptr PartStruct

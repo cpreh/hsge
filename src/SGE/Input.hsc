@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module SGE.Input (
 	KeyboardPtr,
 	RawKeyboardPtr,
@@ -11,6 +13,14 @@ module SGE.Input (
 
 where
 
+import Control.Monad ( (>>=) )
+
+import Data.Eq ( Eq )
+
+import Data.Function ( ($) )
+
+import Data.Maybe ( Maybe )
+
 import Foreign ( ForeignPtr, newForeignPtr, withForeignPtr )
 
 import Foreign.C ( CInt(..) )
@@ -19,9 +29,13 @@ import Foreign.Marshal.Utils ( maybePeek )
 
 import Foreign.Ptr ( FunPtr, Ptr, nullPtr )
 
+import Prelude ( Enum (fromEnum, toEnum), error )
+
 import SGE.Signal ( ConnectionPtr, RawConnectionPtr, sgeDestroyConnection )
 
 import SGE.Utils ( failMaybe, fromCInt )
+
+import System.IO ( IO )
 
 data KeyboardStruct = KeyboardStruct
 

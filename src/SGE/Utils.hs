@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module SGE.Utils (
 	failMaybe,
 	failResult,
@@ -11,11 +13,25 @@ module SGE.Utils (
 
 where
 
-import Control.Monad ( liftM )
+import Control.Monad ( liftM, return )
+
+import Data.Function ( ($) )
+
+import Data.Int ( Int )
+
+import Data.Maybe ( Maybe(Just, Nothing) )
+
+import Data.String ( String )
 
 import Foreign.C ( CInt(..), CUInt(..) )
 
+import Prelude ( Enum(toEnum), Integral, fromIntegral )
+
 import SGE.Types ( Result(..) )
+
+import System.IO ( IO )
+
+import System.IO.Error ( ioError, userError )
 
 failWithMessage :: String -> IO a
 failWithMessage message =

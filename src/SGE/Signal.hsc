@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module SGE.Signal (
 	ConnectionPtr,
 	RawConnectionPtr,
@@ -11,6 +13,8 @@ where
 import Foreign ( ForeignPtr )
 
 import Foreign.Ptr ( Ptr, FunPtr )
+
+import System.IO ( IO )
 
 data ConnectionStruct = ConnectionStruct
 

@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module SGE.Systems (
 	InstancePtr,
 	create,
@@ -10,6 +12,16 @@ module SGE.Systems (
 #include <sgec/systems/instance.h>
 
 where
+
+import Control.Monad ( (>>=) )
+
+import Data.Function ( ($) )
+
+import Data.Int ( Int )
+
+import Data.Maybe ( Maybe )
+
+import Data.String ( String )
 
 import Foreign ( ForeignPtr, newForeignPtr, newForeignPtr_, withForeignPtr )
 
@@ -28,6 +40,8 @@ import SGE.Renderer ( RawDevicePtr, DevicePtr )
 import SGE.Utils ( failMaybe, toCUInt )
 
 import SGE.Window ( RawSystemPtr, SystemPtr )
+
+import System.IO ( IO )
 
 data InstanceStruct = InstanceStruct
 

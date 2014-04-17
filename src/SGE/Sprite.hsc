@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module SGE.Sprite (
 	Object,
 	draw
@@ -6,6 +8,16 @@ module SGE.Sprite (
 #include <sgec/sprite/object.h>
 
 where
+
+import Control.Monad ( return )
+
+import Data.Eq ( Eq )
+
+import Data.Function ( ($) )
+
+import Data.Int ( Int )
+
+import Data.List ( map )
 
 import Foreign ( Storable(..) )
 
@@ -25,13 +37,15 @@ import SGE.Texture ( PartPtr, RawPartPtr )
 
 import SGE.Utils ( toCInt )
 
+import System.IO ( IO )
+
 data RawObject = RawObject {
 	x :: CInt,
 	y :: CInt,
 	w :: CInt,
 	h :: CInt,
 	tex :: RawPartPtr
-} deriving(Eq, Show)
+} deriving(Eq)
 
 data Object = Object {
 	pos_x :: Int,
@@ -39,7 +53,7 @@ data Object = Object {
 	width :: Int,
 	height :: Int,
 	texture :: PartPtr
-} deriving(Eq, Show)
+} deriving(Eq)
 
 #let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
 

@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module SGE.Renderer (
 	ContextPtr,
 	DevicePtr,
@@ -19,6 +21,14 @@ module SGE.Renderer (
 
 where
 
+import Control.Monad ( (>>=) )
+
+import Data.Function ( ($) )
+
+import Data.Maybe ( Maybe )
+
+import Data.String ( String )
+
 import Foreign ( ForeignPtr, newForeignPtr, withForeignPtr )
 
 import Foreign.Marshal.Utils ( maybePeek )
@@ -30,6 +40,8 @@ import Foreign.Ptr ( FunPtr, Ptr )
 import SGE.Image2D ( RawSystemPtr, SystemPtr )
 
 import SGE.Utils ( failMaybe, failResultIO )
+
+import System.IO ( IO )
 
 data DeviceStruct = DeviceStruct
 type RawDevicePtr = Ptr DeviceStruct

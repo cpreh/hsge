@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module SGE.Window (
 	SystemPtr,
 	RawSystemPtr,
@@ -9,7 +11,15 @@ module SGE.Window (
 
 where
 
-import Control.Monad ( liftM )
+import Control.Monad ( liftM, return )
+
+import Data.Bool( Bool(False, True) )
+
+import Data.Eq ( Eq )
+
+import Data.Function ( ($) )
+
+import Data.Int ( Int )
 
 import Foreign ( ForeignPtr, withForeignPtr )
 
@@ -17,7 +27,11 @@ import Foreign.C ( CInt(..) )
 
 import Foreign.Ptr ( Ptr )
 
+import Prelude ( Enum (fromEnum, toEnum), error )
+
 import SGE.Utils ( failResultIO, failWithMessage, fromCInt, toCInt )
+
+import System.IO ( IO )
 
 data PollResult =
 	PollResultRunning

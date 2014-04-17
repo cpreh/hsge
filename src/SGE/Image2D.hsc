@@ -1,3 +1,5 @@
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module SGE.Image2D (
 	RawSystemPtr,
 	SystemPtr
