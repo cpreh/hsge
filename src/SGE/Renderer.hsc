@@ -7,6 +7,7 @@ module SGE.Renderer (
 	RawContextPtr,
 	RawDevicePtr,
 	RawPlanarTexturePtr,
+	destroyContext,
 	destroyPlanarTexture,
 	planarTextureFromPath,
 	planarTextureFromPathExn,
@@ -23,7 +24,7 @@ where
 
 import Control.Exception( bracket )
 
-import Control.Monad ( (>>=) )
+import Control.Monad ( (>>=), (>>) )
 
 import Data.Function ( ($) )
 
@@ -81,9 +82,13 @@ endRendering renderer context =
 	withForeignPtr context $ \cp ->
 	failResultIO "end rendering" $ sgeRendererEnd rp cp
 
+endRenderingAndDestroy :: DevicePtr -> ContextPtr -> IO ()
+endRenderingAndDestroy renderer context =
+	endRendering renderer context >> destroyContext context
+
 withContext :: DevicePtr -> (ContextPtr -> IO a) -> IO a
 withContext device function =
-	bracket (beginRenderingExn device) (endRendering device) function
+	bracket (beginRenderingExn device) (endRenderingAndDestroy device) function
 
 foreign import ccall unsafe "sgec_renderer_context_ffp_clear" sgeRendererClear :: RawContextPtr -> IO (CInt)
 
