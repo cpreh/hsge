@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module SGE.Sprite (
-	Object,
+	Object(..),
 	draw
 )
 
@@ -21,13 +21,13 @@ import Data.List ( map )
 
 import Foreign ( Storable(..) )
 
-import Foreign.C ( CInt(..) )
+import Foreign.C ( CInt, CSize(..) )
 
 import Foreign.ForeignPtr ( withForeignPtr )
 
 import Foreign.ForeignPtr.Unsafe ( unsafeForeignPtrToPtr )
 
-import Foreign.Marshal.Array ( withArray )
+import Foreign.Marshal.Array ( withArrayLen )
 
 import Foreign.Ptr ( Ptr )
 
@@ -35,7 +35,7 @@ import SGE.Renderer ( ContextPtr, DevicePtr, RawContextPtr, RawDevicePtr )
 
 import SGE.Texture ( PartPtr, RawPartPtr )
 
-import SGE.Utils ( toCInt )
+import SGE.Utils ( toCInt, toCSize )
 
 import System.IO ( IO )
 
@@ -74,7 +74,7 @@ instance Storable RawObject where
 		(#poke struct sgec_sprite_object, width) ptr w
 		(#poke struct sgec_sprite_object, height) ptr h
 
-foreign import ccall unsafe "sgec_sprite_draw" sgeSpriteDraw :: RawDevicePtr -> RawContextPtr -> Ptr RawObject ->  IO ()
+foreign import ccall unsafe "sgec_sprite_draw" sgeSpriteDraw :: RawDevicePtr -> RawContextPtr -> Ptr RawObject -> CSize -> IO ()
 
 draw :: DevicePtr -> ContextPtr -> [Object] -> IO ()
 draw device context sprites =
@@ -84,11 +84,10 @@ draw device context sprites =
 			y = toCInt $ pos_y obj,
 			w = toCInt $ width obj,
 			h = toCInt $ height obj,
-			-- TODO: We probably have to touch all of these pointers after the C function has been called
 			tex = unsafeForeignPtrToPtr $ texture obj
 		}
 	in
-	withArray (map toRawObject sprites) $
-	\array -> withForeignPtr device $
+	withArrayLen (map toRawObject sprites) $
+	\length -> \array -> withForeignPtr device $
 	\dp -> withForeignPtr context $
-	\cp -> sgeSpriteDraw dp cp array
+	\cp -> sgeSpriteDraw dp cp array $ toCSize length

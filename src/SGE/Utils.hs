@@ -8,6 +8,7 @@ module SGE.Utils (
 	fromCInt,
 	toCInt,
 	toCUInt,
+	toCSize,
 	toResult
 )
 
@@ -23,7 +24,7 @@ import Data.Maybe ( Maybe(Just, Nothing) )
 
 import Data.String ( String )
 
-import Foreign.C ( CInt(..), CUInt(..) )
+import Foreign.C ( CInt, CUInt, CSize )
 
 import Prelude ( Enum(toEnum), Integral, fromIntegral )
 
@@ -63,6 +64,9 @@ toCUInt = fromIntegral
 
 toCInt :: Integral a => a -> CInt
 toCInt = fromIntegral
+
+toCSize :: Integral a => a -> CSize
+toCSize = fromIntegral
 
 toResult :: Int -> Result
 toResult = toEnum

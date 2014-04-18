@@ -3,16 +3,16 @@
 module SGE.Signal (
 	ConnectionPtr,
 	RawConnectionPtr,
-	sgeDestroyConnection
+	destroy
 )
 
 #include <sgec/signal/connection.h>
 
 where
 
-import Foreign ( ForeignPtr )
+import Foreign ( ForeignPtr, withForeignPtr )
 
-import Foreign.Ptr ( Ptr, FunPtr )
+import Foreign.Ptr ( Ptr )
 
 import System.IO ( IO )
 
@@ -22,4 +22,8 @@ type RawConnectionPtr = Ptr ConnectionStruct
 
 type ConnectionPtr = ForeignPtr ConnectionStruct
 
-foreign import ccall unsafe "&sgec_signal_connection_destroy" sgeDestroyConnection :: FunPtr (RawConnectionPtr -> IO ())
+foreign import ccall unsafe "sgec_signal_connection_destroy" sgeDestroyConnection :: RawConnectionPtr -> IO ()
+
+destroy :: ConnectionPtr -> IO ()
+destroy sig =
+	withForeignPtr sig sgeDestroyConnection

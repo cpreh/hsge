@@ -7,11 +7,11 @@ module SGE.Renderer (
 	RawContextPtr,
 	RawDevicePtr,
 	RawPlanarTexturePtr,
-	beginRendering,
-	beginRenderingExn,
-	endRendering,
+	destroyPlanarTexture,
 	planarTextureFromPath,
-	planarTextureFromPathExn
+	planarTextureFromPathExn,
+	withPlanarTextureFromPath,
+	withContext
 )
 
 #include <sgec/renderer/context/ffp.h>
@@ -21,6 +21,8 @@ module SGE.Renderer (
 
 where
 
+import Control.Exception( bracket )
+
 import Control.Monad ( (>>=) )
 
 import Data.Function ( ($) )
@@ -29,15 +31,15 @@ import Data.Maybe ( Maybe )
 
 import Data.String ( String )
 
-import Foreign ( ForeignPtr, newForeignPtr, withForeignPtr )
+import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
 
 import Foreign.Marshal.Utils ( maybePeek )
 
 import Foreign.C ( CInt(..), CString(..), withCString )
 
-import Foreign.Ptr ( FunPtr, Ptr )
+import Foreign.Ptr ( Ptr )
 
-import SGE.Image2D ( RawSystemPtr, SystemPtr )
+import qualified SGE.Image2D ( RawSystemPtr, SystemPtr )
 
 import SGE.Utils ( failMaybe, failResultIO )
 
@@ -57,16 +59,19 @@ type PlanarTexturePtr = ForeignPtr PlanarTextureStruct
 
 foreign import ccall unsafe "sgec_renderer_device_ffp_begin_rendering" sgeRendererBegin :: RawDevicePtr -> IO (RawContextPtr)
 
-foreign import ccall unsafe "&sgec_renderer_context_ffp_destroy" sgeRendererDestroyContext :: FunPtr (RawContextPtr -> IO ())
+foreign import ccall unsafe "sgec_renderer_context_ffp_destroy" sgeRendererDestroyContext :: RawContextPtr -> IO ()
 
 beginRendering :: DevicePtr -> IO (Maybe ContextPtr)
 beginRendering renderer =
 	withForeignPtr renderer $ \ptr ->
-	sgeRendererBegin ptr >>= maybePeek (newForeignPtr sgeRendererDestroyContext)
+	sgeRendererBegin ptr >>= maybePeek newForeignPtr_
 
 beginRenderingExn :: DevicePtr -> IO ContextPtr
 beginRenderingExn renderer =
 	failMaybe "begin rendering" (beginRendering renderer)
+
+destroyContext :: ContextPtr -> IO ()
+destroyContext context = withForeignPtr context sgeRendererDestroyContext
 
 foreign import ccall unsafe "sgec_renderer_device_ffp_end_rendering" sgeRendererEnd :: RawDevicePtr -> RawContextPtr -> IO (CInt)
 
@@ -75,6 +80,10 @@ endRendering renderer context =
 	withForeignPtr renderer $ \rp ->
 	withForeignPtr context $ \cp ->
 	failResultIO "end rendering" $ sgeRendererEnd rp cp
+
+withContext :: DevicePtr -> (ContextPtr -> IO a) -> IO a
+withContext device function =
+	bracket (beginRenderingExn device) (endRendering device) function
 
 foreign import ccall unsafe "sgec_renderer_context_ffp_clear" sgeRendererClear :: RawContextPtr -> IO (CInt)
 
@@ -85,7 +94,7 @@ clear context =
 
 foreign import ccall unsafe "sgec_renderer_texture_create_planar_from_path" sgeCreatePlanarTextureFromPath :: RawDevicePtr -> SGE.Image2D.RawSystemPtr -> CString -> IO RawPlanarTexturePtr
 
-foreign import ccall unsafe "&sgec_renderer_texture_planar_destroy" sgeDestroyPlanarTexture :: FunPtr (RawPlanarTexturePtr -> IO ())
+foreign import ccall unsafe "sgec_renderer_texture_planar_destroy" sgeDestroyPlanarTexture :: RawPlanarTexturePtr -> IO ()
 
 planarTextureFromPath :: DevicePtr -> SGE.Image2D.SystemPtr -> String -> IO (Maybe PlanarTexturePtr)
 planarTextureFromPath device imagesys path =
@@ -93,8 +102,16 @@ planarTextureFromPath device imagesys path =
 	withForeignPtr imagesys $ \sp ->
 	withCString path $ \pp ->
 	sgeCreatePlanarTextureFromPath dp sp pp
-	>>= maybePeek (newForeignPtr sgeDestroyPlanarTexture)
+	>>= maybePeek newForeignPtr_
 
 planarTextureFromPathExn :: DevicePtr -> SGE.Image2D.SystemPtr -> String -> IO PlanarTexturePtr
 planarTextureFromPathExn device imagesys path =
 	failMaybe "loading a planar texture" (planarTextureFromPath device imagesys path)
+
+destroyPlanarTexture :: PlanarTexturePtr -> IO ()
+destroyPlanarTexture texture =
+	withForeignPtr texture sgeDestroyPlanarTexture
+
+withPlanarTextureFromPath :: DevicePtr -> SGE.Image2D.SystemPtr -> String -> (PlanarTexturePtr -> IO a) -> IO a
+withPlanarTextureFromPath device imagesys path function =
+	bracket (planarTextureFromPathExn device imagesys path) destroyPlanarTexture function
