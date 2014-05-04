@@ -27,7 +27,7 @@ import Data.String ( String )
 
 import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
 
-import Foreign.C ( CInt(..), CUInt(..), CString(..), withCString )
+import Foreign.C ( CUInt(..), CString, withCString )
 
 import Foreign.Marshal.Utils ( maybePeek )
 
@@ -47,7 +47,7 @@ import qualified SGE.Window ( RawSystemPtr, SystemPtr )
 
 import System.IO ( IO )
 
-data InstanceStruct = InstanceStruct
+data InstanceStruct
 
 type RawInstancePtr = Ptr InstanceStruct
 

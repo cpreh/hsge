@@ -49,7 +49,7 @@ instance Enum PollResult where
 	toEnum 2 = PollResultError
 	toEnum _ = error "invalid poll result"
 
-data SystemStruct = SystemStruct
+data SystemStruct
 
 type RawSystemPtr = Ptr SystemStruct
 

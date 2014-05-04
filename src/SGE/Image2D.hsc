@@ -13,6 +13,6 @@ import Foreign ( ForeignPtr )
 
 import Foreign.Ptr ( Ptr )
 
-data SystemStruct = SystemeStruct
+data SystemStruct
 type RawSystemPtr = Ptr SystemStruct
 type SystemPtr = ForeignPtr SystemStruct

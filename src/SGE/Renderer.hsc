@@ -7,6 +7,7 @@ module SGE.Renderer (
 	RawContextPtr,
 	RawDevicePtr,
 	RawPlanarTexturePtr,
+	clear,
 	destroyContext,
 	destroyPlanarTexture,
 	planarTextureFromPath,
@@ -36,7 +37,7 @@ import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
 
 import Foreign.Marshal.Utils ( maybePeek )
 
-import Foreign.C ( CInt(..), CString(..), withCString )
+import Foreign.C ( CInt(..), CString, withCString )
 
 import Foreign.Ptr ( Ptr )
 
@@ -46,15 +47,15 @@ import SGE.Utils ( failMaybe, failResultIO )
 
 import System.IO ( IO )
 
-data DeviceStruct = DeviceStruct
+data DeviceStruct
 type RawDevicePtr = Ptr DeviceStruct
 type DevicePtr = ForeignPtr DeviceStruct
 
-data ContextStruct = ContextStruct
+data ContextStruct
 type RawContextPtr = Ptr ContextStruct
 type ContextPtr = ForeignPtr ContextStruct
 
-data PlanarTextureStruct = PlanarTextureStruct
+data PlanarTextureStruct
 type RawPlanarTexturePtr = Ptr PlanarTextureStruct
 type PlanarTexturePtr = ForeignPtr PlanarTextureStruct
 

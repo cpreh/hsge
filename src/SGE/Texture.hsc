@@ -34,7 +34,7 @@ import SGE.Utils ( failMaybe )
 
 import System.IO ( IO )
 
-data PartStruct = PartStruct
+data PartStruct
 type RawPartPtr = Ptr PartStruct
 type PartPtr = ForeignPtr PartStruct
 

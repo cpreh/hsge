@@ -40,11 +40,11 @@ import SGE.Utils ( toCInt, toCSize )
 import System.IO ( IO )
 
 data RawObject = RawObject {
-	x :: CInt,
-	y :: CInt,
-	w :: CInt,
-	h :: CInt,
-	tex :: RawPartPtr
+	raw_x :: CInt,
+	raw_y :: CInt,
+	raw_w :: CInt,
+	raw_h :: CInt,
+	raw_tex :: RawPartPtr
 } deriving(Eq)
 
 data Object = Object {
@@ -66,7 +66,7 @@ instance Storable RawObject where
 		w <- (#peek struct sgec_sprite_object, width) ptr
 		h <- (#peek struct sgec_sprite_object, height) ptr
 		tex <- (#peek struct sgec_sprite_object, texture) ptr
-		return $ RawObject { x = x, y = y, w = w, h = h, tex = tex }
+		return $ RawObject { raw_x = x, raw_y = y, raw_w = w, raw_h = h, raw_tex = tex }
 	poke ptr (RawObject x y w h tex) = do
 		(#poke struct sgec_sprite_object, texture) ptr tex
 		(#poke struct sgec_sprite_object, pos_x) ptr x
@@ -80,11 +80,11 @@ draw :: DevicePtr -> ContextPtr -> [Object] -> IO ()
 draw device context sprites =
 	let toRawObject obj =
 		RawObject {
-			x = toCInt $ pos_x obj,
-			y = toCInt $ pos_y obj,
-			w = toCInt $ width obj,
-			h = toCInt $ height obj,
-			tex = unsafeForeignPtrToPtr $ texture obj
+			raw_x = toCInt $ pos_x obj,
+			raw_y = toCInt $ pos_y obj,
+			raw_w = toCInt $ width obj,
+			raw_h = toCInt $ height obj,
+			raw_tex = unsafeForeignPtrToPtr $ texture obj
 		}
 	in
 	withArrayLen (map toRawObject sprites) $

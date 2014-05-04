@@ -16,7 +16,7 @@ import Foreign.Ptr ( Ptr )
 
 import System.IO ( IO )
 
-data ConnectionStruct = ConnectionStruct
+data ConnectionStruct
 
 type RawConnectionPtr = Ptr ConnectionStruct
 

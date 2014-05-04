@@ -39,7 +39,7 @@ import SGE.Utils ( failMaybe, fromCInt )
 
 import System.IO ( IO )
 
-data KeyboardStruct = KeyboardStruct
+data KeyboardStruct
 
 type RawKeyboardPtr = Ptr KeyboardStruct
 
