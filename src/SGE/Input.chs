@@ -4,12 +4,14 @@ module SGE.Input (
 	KeyboardPtr,
 	KeyCallback,
 	KeyboardKey(..),
-	KeyboardKeyStatus(..),
+	KeyState(..),
 	RawKeyboardPtr,
 	withKeyCallback
 )
 
 #include <sgec/input/keyboard/device.h>
+#include <sgec/input/keyboard/key_code.h>
+#include <sgec/input/keyboard/key_state.h>
 
 where
 
@@ -20,6 +22,8 @@ import Control.Monad ( (>>=) )
 import Data.Eq ( Eq )
 
 import Data.Function ( ($) )
+
+import Data.List ( (++) )
 
 import Data.Maybe ( Maybe )
 
@@ -39,6 +43,8 @@ import SGE.Utils ( failMaybe, fromCInt )
 
 import System.IO ( IO )
 
+import Text.Show ( Show, show )
+
 data KeyboardStruct
 
 type RawKeyboardPtr = Ptr KeyboardStruct
@@ -49,46 +55,15 @@ type RawKeyCallback = FunPtr (CInt -> CInt -> Ptr () -> IO ())
 
 type WrappedKeyCallback = CInt -> CInt -> Ptr () -> IO ()
 
-data KeyboardKey =
-	KeyEscape
-	| KeyLeft
-	| KeyRight
-	| KeyUp
-	| KeyDown
-	deriving(Eq)
+{#enum sgec_input_keyboard_key_code as KeyboardKey {underscoreToCase} deriving (Eq, Show)#}
 
-instance Enum KeyboardKey where
-	fromEnum KeyEscape = 0
-	fromEnum KeyLeft = 18
-	fromEnum KeyRight = 19
-	fromEnum KeyUp = 20
-	fromEnum KeyDown = 21
-
-	toEnum 0 = KeyEscape
-	toEnum 18 = KeyLeft
-	toEnum 19 = KeyRight
-	toEnum 20 = KeyUp
-	toEnum 21 = KeyDown
-	toEnum _ = error "Invalid key"
-
-data KeyboardKeyStatus =
-	KeyReleased
-	| KeyPressed
-
-instance Enum KeyboardKeyStatus where
-	fromEnum KeyReleased = 0
-	fromEnum KeyPressed = 1
-
-	toEnum 0 = KeyReleased
-	toEnum 1 = KeyPressed
-	toEnum _ = error "Invalid key status"
-
+{#enum sgec_input_keyboard_key_state as KeyState {underscoreToCase} deriving (Eq, Show)#}
 
 foreign import ccall unsafe "sgec_input_keyboard_device_connect_key_callback" sgeConnectKey :: RawKeyboardPtr -> RawKeyCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
 
 foreign import ccall unsafe "wrapper" wrapKeyCallback :: WrappedKeyCallback -> IO RawKeyCallback
 
-type KeyCallback = KeyboardKey -> KeyboardKeyStatus -> IO ()
+type KeyCallback = KeyboardKey -> KeyState -> IO ()
 
 -- TODO: We need to free the wrapped key callback
 connectKeyCallback :: KeyboardPtr -> KeyCallback -> IO (Maybe SGE.Signal.ConnectionPtr)

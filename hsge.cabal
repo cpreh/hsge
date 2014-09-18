@@ -17,6 +17,7 @@ cabal-version:       >=1.10
 library
   exposed-modules:     SGE.Image2D, SGE.Input, SGE.Renderer, SGE.Signal, SGE.Sprite, SGE.Systems, SGE.Texture, SGE.Window
   other-modules:       SGE.Types, SGE.Utils
+  build-tools:         c2hs
 --  cc-options:          "-std=c99"
   build-depends:       base >=4.6
   hs-source-dirs:      src
