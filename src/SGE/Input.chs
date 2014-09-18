@@ -55,9 +55,9 @@ type RawKeyCallback = FunPtr (CInt -> CInt -> Ptr () -> IO ())
 
 type WrappedKeyCallback = CInt -> CInt -> Ptr () -> IO ()
 
-{#enum sgec_input_keyboard_key_code as KeyboardKey {underscoreToCase} deriving (Eq, Show)#}
+{#enum sgec_input_keyboard_key_code as KeyboardKey {underscoreToCase} with prefix = "sgec_input_keyboard_key_code" add prefix = "KeyboardKey" deriving (Eq, Show)#}
 
-{#enum sgec_input_keyboard_key_state as KeyState {underscoreToCase} deriving (Eq, Show)#}
+{#enum sgec_input_keyboard_key_state as KeyState {underscoreToCase} with prefix = "sgec_input_keyboard_key_state" add prefix = "KeyState" deriving (Eq, Show)#}
 
 foreign import ccall unsafe "sgec_input_keyboard_device_connect_key_callback" sgeConnectKey :: RawKeyboardPtr -> RawKeyCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
 
