@@ -27,6 +27,8 @@ import Data.List ( (++) )
 
 import Data.Maybe ( Maybe )
 
+import Data.Ord ( compare, Ordering(EQ, LT, GT))
+
 import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
 
 import Foreign.C ( CInt(..) )
@@ -35,7 +37,7 @@ import Foreign.Marshal.Utils ( maybePeek )
 
 import Foreign.Ptr ( FunPtr, Ptr, nullPtr )
 
-import Prelude ( Enum (fromEnum, toEnum), error )
+import Prelude ( Enum (enumFromTo, enumFrom, fromEnum, pred, succ, toEnum),  error )
 
 import qualified SGE.Signal ( ConnectionPtr, RawConnectionPtr, destroy )
 
