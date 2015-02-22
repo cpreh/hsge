@@ -4,8 +4,10 @@ module SGE.Texture (
 	PartPtr,
 	RawPartPtr,
 	destroyPart,
+	height,
 	partRaw,
 	partRawExn,
+	width,
 	withPartRaw
 )
 
@@ -20,9 +22,13 @@ import Control.Monad ( (>>=) )
 
 import Data.Function ( ($) )
 
+import Data.Int ( Int )
+
 import Data.Maybe ( Maybe )
 
 import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
+
+import Foreign.C ( CInt(..) )
 
 import Foreign.Ptr ( Ptr )
 
@@ -30,9 +36,11 @@ import Foreign.Marshal.Utils ( maybePeek )
 
 import SGE.Renderer ( PlanarTexturePtr, RawPlanarTexturePtr )
 
-import SGE.Utils ( failMaybe )
+import SGE.Utils ( failMaybe, fromCInt )
 
 import System.IO ( IO )
+
+import System.IO.Unsafe ( unsafeDupablePerformIO )
 
 data PartStruct
 type RawPartPtr = Ptr PartStruct
@@ -59,3 +67,15 @@ destroyPart texture =
 withPartRaw :: PlanarTexturePtr -> (PartPtr -> IO a) -> IO a
 withPartRaw texture function =
 	bracket (partRawExn texture) destroyPart function
+
+foreign import ccall unsafe "sgec_texture_part_width" sgeTextureWidth :: RawPartPtr -> IO CInt
+
+width :: PartPtr -> Int
+width texture =
+	fromCInt $ unsafeDupablePerformIO $ withForeignPtr texture sgeTextureWidth
+
+foreign import ccall unsafe "sgec_texture_part_height" sgeTextureHeight :: RawPartPtr -> IO CInt
+
+height :: PartPtr -> Int
+height texture =
+	fromCInt $ unsafeDupablePerformIO $ withForeignPtr texture sgeTextureHeight
