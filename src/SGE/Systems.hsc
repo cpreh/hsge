@@ -1,12 +1,13 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module SGE.Systems (
-	InstancePtr,
-	imageSystem,
-	keyboard,
-	renderer,
-	windowSystem,
-	with
+       InstancePtr,
+       fontSystem,
+       imageSystem,
+       keyboard,
+       renderer,
+       windowSystem,
+       with
 )
 
 #include <sgec/systems/instance.h>
@@ -35,7 +36,9 @@ import Foreign.Ptr ( Ptr )
 
 import System.IO.Unsafe ( unsafePerformIO )
 
-import qualified SGE.Image2D( RawSystemPtr, SystemPtr )
+import qualified SGE.Font ( RawSystemPtr, SystemPtr )
+
+import qualified SGE.Image2D ( RawSystemPtr, SystemPtr )
 
 import qualified SGE.Input ( RawKeyboardPtr, KeyboardPtr )
 
@@ -96,3 +99,8 @@ foreign import ccall unsafe "sgec_systems_instance_image2d_system" sgeSystemsIma
 
 imageSystem :: InstancePtr -> SGE.Image2D.SystemPtr
 imageSystem = extractSystem sgeSystemsImageSystem
+
+foreign import ccall unsafe "sgec_systems_instance_font_system" sgeSystemsFontSystem :: RawInstancePtr -> SGE.Font.RawSystemPtr
+
+fontSystem :: InstancePtr -> SGE.Font.SystemPtr
+fontSystem = extractSystem sgeSystemsFontSystem
