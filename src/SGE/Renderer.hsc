@@ -37,9 +37,11 @@ import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
 
 import Foreign.Marshal.Utils ( maybePeek )
 
-import Foreign.C ( CInt(..), CString, withCString )
+import Foreign.C ( CInt(..), CUInt(..), CString, withCString )
 
 import Foreign.Ptr ( Ptr )
+
+import SGE.Image ( convertRGBA, RGBA )
 
 import qualified SGE.Image2D ( RawSystemPtr, SystemPtr )
 
@@ -91,12 +93,12 @@ withContext :: DevicePtr -> (ContextPtr -> IO a) -> IO a
 withContext device function =
 	bracket (beginRenderingExn device) (endRenderingAndDestroy device) function
 
-foreign import ccall unsafe "sgec_renderer_context_ffp_clear" sgeRendererClear :: RawContextPtr -> IO (CInt)
+foreign import ccall unsafe "sgec_renderer_context_ffp_clear" sgeRendererClear :: RawContextPtr -> CUInt -> IO (CInt)
 
-clear :: ContextPtr -> IO ()
-clear context =
+clear :: ContextPtr -> RGBA -> IO ()
+clear context color =
 	withForeignPtr context $ \cp ->
-	failResultIO "renderer clear" $ sgeRendererClear cp
+	failResultIO "renderer clear" $ sgeRendererClear cp $ convertRGBA color
 
 foreign import ccall unsafe "sgec_renderer_texture_create_planar_from_path" sgeCreatePlanarTextureFromPath :: RawDevicePtr -> SGE.Image2D.RawSystemPtr -> CString -> IO RawPlanarTexturePtr
 

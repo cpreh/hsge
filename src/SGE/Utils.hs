@@ -7,6 +7,7 @@ module SGE.Utils (
 	failWithMessage,
 	fromCInt,
 	toCInt,
+        toCUChar,
 	toCUInt,
 	toCSize,
 	toResult
@@ -22,9 +23,11 @@ import Data.Int ( Int )
 
 import Data.Maybe ( Maybe(Just, Nothing) )
 
+import Data.Word ( Word8 )
+
 import Data.String ( String )
 
-import Foreign.C ( CInt, CUInt, CSize )
+import Foreign.C ( CInt, CUChar, CUInt, CSize )
 
 import Prelude ( Enum(toEnum), Integral, fromIntegral )
 
@@ -64,6 +67,9 @@ toCUInt = fromIntegral
 
 toCInt :: Integral a => a -> CInt
 toCInt = fromIntegral
+
+toCUChar :: Word8 -> CUChar
+toCUChar = fromIntegral
 
 toCSize :: Integral a => a -> CSize
 toCSize = fromIntegral
