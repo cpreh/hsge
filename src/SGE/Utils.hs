@@ -6,6 +6,7 @@ module SGE.Utils (
 	failResultIO,
 	failWithMessage,
 	fromCInt,
+	toCFloat,
 	toCInt,
         toCUChar,
 	toCUInt,
@@ -27,9 +28,9 @@ import Data.Word ( Word8 )
 
 import Data.String ( String )
 
-import Foreign.C ( CInt, CUChar, CUInt, CSize )
+import Foreign.C ( CFloat, CInt, CUChar, CUInt, CSize )
 
-import Prelude ( Enum(toEnum), Integral, fromIntegral )
+import Prelude ( Enum(toEnum), Float, Integral, fromIntegral, realToFrac )
 
 import SGE.Types ( Result(..) )
 
@@ -64,6 +65,9 @@ fromCInt = fromIntegral
 
 toCUInt :: Integral a => a -> CUInt
 toCUInt = fromIntegral
+
+toCFloat :: Float -> CFloat
+toCFloat = realToFrac
 
 toCInt :: Integral a => a -> CInt
 toCInt = fromIntegral

@@ -1,19 +1,23 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module SGE.Renderer (
-	ContextPtr,
-	DevicePtr,
-	PlanarTexturePtr,
-	RawContextPtr,
-	RawDevicePtr,
-	RawPlanarTexturePtr,
-	clear,
-	destroyContext,
-	destroyPlanarTexture,
-	planarTextureFromPath,
-	planarTextureFromPathExn,
-	withPlanarTextureFromPath,
-	withContext
+    ContextPtr,
+    DevicePtr,
+    PlanarTexturePtr,
+    RawContextPtr,
+    RawDevicePtr,
+    RawPlanarTexturePtr,
+    beginRendering,
+    beginRenderingExn,
+    clear,
+    destroyContext,
+    destroyPlanarTexture,
+    endRendering,
+    endRenderingAndDestroy,
+    planarTextureFromPath,
+    planarTextureFromPathExn,
+    withPlanarTextureFromPath,
+    withContext
 )
 
 #include <sgec/renderer/context/ffp.h>

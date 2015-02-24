@@ -79,6 +79,6 @@ connectKeyCallbackExn :: KeyboardPtr -> KeyCallback -> IO SGE.Signal.ConnectionP
 connectKeyCallbackExn keyboard callback =
 	failMaybe "connect key callback" (connectKeyCallback keyboard callback)
 
-withKeyCallback :: KeyboardPtr -> KeyCallback -> (() -> IO a) -> IO a
+withKeyCallback :: KeyboardPtr -> KeyCallback -> IO a -> IO a
 withKeyCallback keyboard callback function =
-	bracket (connectKeyCallbackExn keyboard callback) SGE.Signal.destroy (\_ -> function ())
+	bracket (connectKeyCallbackExn keyboard callback) SGE.Signal.destroy (\_ -> function)
