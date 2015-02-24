@@ -3,6 +3,7 @@
 module SGE.Renderer (
     ContextPtr,
     DevicePtr,
+    OnscreenTargetPtr,
     PlanarTexturePtr,
     RawContextPtr,
     RawDevicePtr,
@@ -14,6 +15,9 @@ module SGE.Renderer (
     destroyPlanarTexture,
     endRendering,
     endRenderingAndDestroy,
+    onscreenTarget,
+    onscreenTargetHeight,
+    onscreenTargetWidth,
     planarTextureFromPath,
     planarTextureFromPathExn,
     withPlanarTextureFromPath,
@@ -28,30 +32,20 @@ module SGE.Renderer (
 where
 
 import Control.Exception( bracket )
-
-import Control.Monad ( (>>=), (>>) )
-
+import Control.Monad ( (>>=), (>>), return )
 import Data.Function ( ($) )
-
+import Data.Int ( Int )
 import Data.Maybe ( Maybe )
-
 import Data.String ( String )
-
 import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
-
 import Foreign.Marshal.Utils ( maybePeek )
-
 import Foreign.C ( CInt(..), CUInt(..), CString, withCString )
-
 import Foreign.Ptr ( Ptr )
-
 import SGE.Image ( convertRGBA, RGBA )
-
 import qualified SGE.Image2D ( RawSystemPtr, SystemPtr )
-
-import SGE.Utils ( failMaybe, failResultIO )
-
+import SGE.Utils ( failMaybe, failResultIO, fromCUInt )
 import System.IO ( IO )
+import System.IO.Unsafe ( unsafeDupablePerformIO )
 
 data DeviceStruct
 type RawDevicePtr = Ptr DeviceStruct
@@ -64,6 +58,10 @@ type ContextPtr = ForeignPtr ContextStruct
 data PlanarTextureStruct
 type RawPlanarTexturePtr = Ptr PlanarTextureStruct
 type PlanarTexturePtr = ForeignPtr PlanarTextureStruct
+
+data OnscreenTargetStruct
+type RawOnscreenTargetPtr = Ptr OnscreenTargetStruct
+type OnscreenTargetPtr = ForeignPtr OnscreenTargetStruct
 
 foreign import ccall unsafe "sgec_renderer_device_ffp_begin_rendering" sgeRendererBegin :: RawDevicePtr -> IO (RawContextPtr)
 
@@ -97,6 +95,13 @@ withContext :: DevicePtr -> (ContextPtr -> IO a) -> IO a
 withContext device function =
 	bracket (beginRenderingExn device) (endRenderingAndDestroy device) function
 
+foreign import ccall unsafe "sgec_renderer_device_onscreen_target" sgeOnscreenTarget :: RawDevicePtr -> RawOnscreenTargetPtr
+
+onscreenTarget :: DevicePtr -> OnscreenTargetPtr
+onscreenTarget renderer =
+	unsafeDupablePerformIO $ withForeignPtr renderer $ \rp ->
+	newForeignPtr_ (sgeOnscreenTarget rp)
+
 foreign import ccall unsafe "sgec_renderer_context_ffp_clear" sgeRendererClear :: RawContextPtr -> CUInt -> IO (CInt)
 
 clear :: ContextPtr -> RGBA -> IO ()
@@ -127,3 +132,15 @@ destroyPlanarTexture texture =
 withPlanarTextureFromPath :: DevicePtr -> SGE.Image2D.SystemPtr -> String -> (PlanarTexturePtr -> IO a) -> IO a
 withPlanarTextureFromPath device imagesys path function =
 	bracket (planarTextureFromPathExn device imagesys path) destroyPlanarTexture function
+
+foreign import ccall unsafe "sgec_renderer_target_onscreen_viewport_width" sgeTargetWidth :: RawOnscreenTargetPtr -> CUInt
+
+onscreenTargetWidth :: OnscreenTargetPtr -> Int
+onscreenTargetWidth target =
+	fromCUInt $ unsafeDupablePerformIO $ withForeignPtr target $ \ptarget -> return $ sgeTargetWidth ptarget
+
+foreign import ccall unsafe "sgec_renderer_target_onscreen_viewport_height" sgeTargetHeight :: RawOnscreenTargetPtr -> CUInt
+
+onscreenTargetHeight :: OnscreenTargetPtr -> Int
+onscreenTargetHeight target =
+	fromCUInt $ unsafeDupablePerformIO $ withForeignPtr target $ \ptarget -> return $ sgeTargetHeight ptarget

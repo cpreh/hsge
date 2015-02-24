@@ -6,6 +6,7 @@ module SGE.Utils (
 	failResultIO,
 	failWithMessage,
 	fromCInt,
+	fromCUInt,
 	toCFloat,
 	toCInt,
         toCUChar,
@@ -62,6 +63,9 @@ failResultIO message action =
 
 fromCInt :: Integral a => CInt -> a
 fromCInt = fromIntegral
+
+fromCUInt :: Integral a => CUInt -> a
+fromCUInt = fromIntegral
 
 toCUInt :: Integral a => a -> CUInt
 toCUInt = fromIntegral

@@ -34,7 +34,7 @@ import Foreign.Marshal.Utils ( maybePeek )
 
 import Foreign.Ptr ( Ptr )
 
-import System.IO.Unsafe ( unsafePerformIO )
+import System.IO.Unsafe ( unsafeDupablePerformIO )
 
 import qualified SGE.Font ( RawSystemPtr, SystemPtr )
 
@@ -78,7 +78,7 @@ with title w h func =
 
 extractSystem :: (RawInstancePtr -> Ptr a) -> InstancePtr -> ForeignPtr a
 extractSystem func inst =
-	unsafePerformIO $ withForeignPtr inst $ \ptr -> newForeignPtr_ (func ptr)
+	unsafeDupablePerformIO $ withForeignPtr inst $ \ptr -> newForeignPtr_ (func ptr)
 
 foreign import ccall unsafe "sgec_systems_instance_renderer" sgeSystemsRenderer :: RawInstancePtr -> SGE.Renderer.RawDevicePtr
 
