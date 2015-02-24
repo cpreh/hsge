@@ -33,7 +33,7 @@ where
 
 import Control.Exception( bracket )
 import Control.Monad ( (>>=), (>>), return )
-import Data.Function ( ($) )
+import Data.Function ( ($), (.) )
 import Data.Int ( Int )
 import Data.Maybe ( Maybe )
 import Data.String ( String )
@@ -133,14 +133,14 @@ withPlanarTextureFromPath :: DevicePtr -> SGE.Image2D.SystemPtr -> String -> (Pl
 withPlanarTextureFromPath device imagesys path function =
 	bracket (planarTextureFromPathExn device imagesys path) destroyPlanarTexture function
 
-foreign import ccall unsafe "sgec_renderer_target_onscreen_viewport_width" sgeTargetWidth :: RawOnscreenTargetPtr -> CUInt
+foreign import ccall unsafe "sgec_renderer_target_onscreen_viewport_width" sgeTargetWidth :: RawOnscreenTargetPtr -> IO CUInt
 
-onscreenTargetWidth :: OnscreenTargetPtr -> Int
+onscreenTargetWidth :: OnscreenTargetPtr -> IO Int
 onscreenTargetWidth target =
-	fromCUInt $ unsafeDupablePerformIO $ withForeignPtr target $ \ptarget -> return $ sgeTargetWidth ptarget
+	withForeignPtr target $ \ptarget -> (sgeTargetWidth ptarget >>= return . fromCUInt)
 
-foreign import ccall unsafe "sgec_renderer_target_onscreen_viewport_height" sgeTargetHeight :: RawOnscreenTargetPtr -> CUInt
+foreign import ccall unsafe "sgec_renderer_target_onscreen_viewport_height" sgeTargetHeight :: RawOnscreenTargetPtr -> IO CUInt
 
-onscreenTargetHeight :: OnscreenTargetPtr -> Int
+onscreenTargetHeight :: OnscreenTargetPtr -> IO Int
 onscreenTargetHeight target =
-	fromCUInt $ unsafeDupablePerformIO $ withForeignPtr target $ \ptarget -> return $ sgeTargetHeight ptarget
+	withForeignPtr target $ \ptarget -> (sgeTargetHeight ptarget >>= return .fromCUInt)
