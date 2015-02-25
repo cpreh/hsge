@@ -17,7 +17,6 @@ where
 import Control.Exception( bracket )
 import Control.Monad ( (>>=) )
 import Data.Function ( ($) )
-import Data.Int ( Int )
 import Data.Maybe ( Maybe )
 import Data.String ( String )
 import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
@@ -28,6 +27,7 @@ import Foreign.Ptr ( Ptr )
 import System.IO ( IO )
 import SGE.Image ( RGBA, convertRGBA )
 import qualified SGE.Renderer ( ContextPtr, DevicePtr, RawContextPtr, RawDevicePtr )
+import SGE.Types ( Pos, posX, posY )
 import SGE.Utils ( failMaybe, failResultIO, toCInt )
 
 data SystemStruct
@@ -62,10 +62,10 @@ withFont system function =
 
 foreign import ccall unsafe "sgec_font_draw_simple" sgeDrawFont :: SGE.Renderer.RawDevicePtr -> SGE.Renderer.RawContextPtr -> RawObjectPtr -> CWString -> CInt -> CInt -> CUInt -> IO (CInt)
 
-draw :: SGE.Renderer.DevicePtr -> SGE.Renderer.ContextPtr -> ObjectPtr -> String -> Int -> Int -> RGBA -> IO ()
-draw renderer context font text x y color =
+draw :: SGE.Renderer.DevicePtr -> SGE.Renderer.ContextPtr -> ObjectPtr -> String -> Pos -> RGBA -> IO ()
+draw renderer context font text pos color =
      withForeignPtr renderer $ \prenderer ->
      withForeignPtr context $ \pcontext ->
      withForeignPtr font $ \pfont ->
      withCWString text $ \pstring ->
-     failResultIO "draw text" $ sgeDrawFont prenderer pcontext pfont pstring (toCInt x) (toCInt y) (convertRGBA color)
+     failResultIO "draw text" $ sgeDrawFont prenderer pcontext pfont pstring (toCInt $ posX pos) (toCInt $ posY pos) (convertRGBA color)

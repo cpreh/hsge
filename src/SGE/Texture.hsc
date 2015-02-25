@@ -4,6 +4,7 @@ module SGE.Texture (
 	PartPtr,
 	RawPartPtr,
 	destroyPart,
+	dim,
 	height,
 	partRaw,
 	partRawExn,
@@ -17,29 +18,18 @@ module SGE.Texture (
 where
 
 import Control.Exception( bracket )
-
 import Control.Monad ( (>>=) )
-
 import Data.Function ( ($) )
-
 import Data.Int ( Int )
-
 import Data.Maybe ( Maybe )
-
 import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
-
 import Foreign.C ( CInt(..) )
-
 import Foreign.Ptr ( Ptr )
-
 import Foreign.Marshal.Utils ( maybePeek )
-
 import SGE.Renderer ( PlanarTexturePtr, RawPlanarTexturePtr )
-
 import SGE.Utils ( failMaybe, fromCInt )
-
+import SGE.Types ( Dim(..) )
 import System.IO ( IO )
-
 import System.IO.Unsafe ( unsafeDupablePerformIO )
 
 data PartStruct
@@ -79,3 +69,6 @@ foreign import ccall unsafe "sgec_texture_part_height" sgeTextureHeight :: RawPa
 height :: PartPtr -> Int
 height texture =
 	fromCInt $ unsafeDupablePerformIO $ withForeignPtr texture sgeTextureHeight
+
+dim :: PartPtr -> Dim
+dim texture = Dim (width texture, height texture)

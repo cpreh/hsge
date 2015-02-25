@@ -16,6 +16,7 @@ module SGE.Renderer (
     endRendering,
     endRenderingAndDestroy,
     onscreenTarget,
+    onscreenTargetDim,
     onscreenTargetHeight,
     onscreenTargetWidth,
     planarTextureFromPath,
@@ -43,6 +44,7 @@ import Foreign.C ( CInt(..), CUInt(..), CString, withCString )
 import Foreign.Ptr ( Ptr )
 import SGE.Image ( convertRGBA, RGBA )
 import qualified SGE.Image2D ( RawSystemPtr, SystemPtr )
+import SGE.Types ( Dim(..) )
 import SGE.Utils ( failMaybe, failResultIO, fromCUInt )
 import System.IO ( IO )
 import System.IO.Unsafe ( unsafeDupablePerformIO )
@@ -144,3 +146,9 @@ foreign import ccall unsafe "sgec_renderer_target_onscreen_viewport_height" sgeT
 onscreenTargetHeight :: OnscreenTargetPtr -> IO Int
 onscreenTargetHeight target =
 	withForeignPtr target $ \ptarget -> (sgeTargetHeight ptarget >>= return .fromCUInt)
+
+onscreenTargetDim :: OnscreenTargetPtr -> IO Dim
+onscreenTargetDim target = do
+	w <- onscreenTargetWidth target
+	h <- onscreenTargetHeight target
+	return $ Dim (w, h)

@@ -20,15 +20,13 @@ import Control.Monad ( (>>=) )
 
 import Data.Function ( ($) )
 
-import Data.Int ( Int )
-
 import Data.Maybe ( Maybe )
 
 import Data.String ( String )
 
 import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
 
-import Foreign.C ( CUInt(..), CString, withCString )
+import Foreign.C ( CString, withCString )
 
 import Foreign.Marshal.Utils ( maybePeek )
 
@@ -44,7 +42,7 @@ import qualified SGE.Input ( RawKeyboardPtr, KeyboardPtr )
 
 import qualified SGE.Renderer ( RawDevicePtr, DevicePtr )
 
-import SGE.Utils ( failMaybe, toCUInt )
+import SGE.Utils ( failMaybe )
 
 import qualified SGE.Window ( RawSystemPtr, SystemPtr )
 
@@ -56,25 +54,25 @@ type RawInstancePtr = Ptr InstanceStruct
 
 type InstancePtr = ForeignPtr InstanceStruct
 
-foreign import ccall unsafe "sgec_systems_instance_create" sgeSystemsCreate :: CString -> CUInt -> CUInt -> IO RawInstancePtr
+foreign import ccall unsafe "sgec_systems_instance_create" sgeSystemsCreate :: CString -> IO RawInstancePtr
 
 foreign import ccall unsafe "sgec_systems_instance_destroy" sgeSystemsDestroy :: RawInstancePtr -> IO ()
 
-create :: String -> Int -> Int -> IO (Maybe InstancePtr)
-create title w h =
-	(withCString title $ \titlePtr ->
-	sgeSystemsCreate titlePtr (toCUInt w) (toCUInt h))
+create :: String -> IO (Maybe InstancePtr)
+create title =
+	withCString title $ \titlePtr ->
+	sgeSystemsCreate titlePtr
 	>>= maybePeek newForeignPtr_
 
-createExn :: String -> Int -> Int -> IO (InstancePtr)
-createExn title w h = failMaybe "create system instance" (create title w h)
+createExn :: String -> IO (InstancePtr)
+createExn title = failMaybe "create system instance" (create title)
 
 destroy :: InstancePtr -> IO ()
 destroy ptr = withForeignPtr ptr sgeSystemsDestroy
 
-with :: String -> Int -> Int -> (InstancePtr -> IO a) -> IO a
-with title w h func =
-	bracket (createExn title w h) destroy func
+with :: String -> (InstancePtr -> IO a) -> IO a
+with title func =
+	bracket (createExn title) destroy func
 
 extractSystem :: (RawInstancePtr -> Ptr a) -> InstancePtr -> ForeignPtr a
 extractSystem func inst =

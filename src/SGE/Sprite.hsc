@@ -10,35 +10,20 @@ module SGE.Sprite (
 where
 
 import Control.Monad ( return )
-
 import Data.Eq ( Eq )
-
 import Data.Function ( ($) )
-
-import Data.Int ( Int )
-
 import Data.List ( map )
-
 import Foreign ( Storable(..) )
-
 import Foreign.C ( CFloat, CInt, CSize(..) )
-
 import Foreign.ForeignPtr ( withForeignPtr )
-
 import Foreign.ForeignPtr.Unsafe ( unsafeForeignPtrToPtr )
-
 import Foreign.Marshal.Array ( withArrayLen )
-
 import Foreign.Ptr ( Ptr )
-
 import Prelude ( Float )
-
 import SGE.Renderer ( ContextPtr, DevicePtr, RawContextPtr, RawDevicePtr )
-
 import SGE.Texture ( PartPtr, RawPartPtr )
-
+import SGE.Types ( Dim, Pos, dimW, dimH, posX, posY )
 import SGE.Utils ( toCFloat, toCInt, toCSize )
-
 import System.IO ( IO )
 
 data RawObject = RawObject {
@@ -51,10 +36,8 @@ data RawObject = RawObject {
 } deriving(Eq)
 
 data Object = Object {
-	pos_x :: Int,
-	pos_y :: Int,
-	width :: Int,
-	height :: Int,
+	pos :: Pos,
+	dim :: Dim,
 	rotation :: Float,
 	texture :: PartPtr
 } deriving(Eq)
@@ -87,10 +70,10 @@ draw device context sprites =
 	let toRawObject obj =
 		RawObject {
 			raw_tex = unsafeForeignPtrToPtr $ texture obj,
-			raw_x = toCInt $ pos_x obj,
-			raw_y = toCInt $ pos_y obj,
-			raw_w = toCInt $ width obj,
-			raw_h = toCInt $ height obj,
+			raw_x = toCInt $ posX $ pos obj,
+			raw_y = toCInt $ posY $ pos obj,
+			raw_w = toCInt $ dimW $ dim obj,
+			raw_h = toCInt $ dimH $ dim obj,
 			raw_rotation = toCFloat $ rotation obj
 		}
 	in
