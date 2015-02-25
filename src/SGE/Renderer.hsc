@@ -97,7 +97,7 @@ withContext :: DevicePtr -> (ContextPtr -> IO a) -> IO a
 withContext device function =
 	bracket (beginRenderingExn device) (endRenderingAndDestroy device) function
 
-foreign import ccall unsafe "sgec_renderer_device_onscreen_target" sgeOnscreenTarget :: RawDevicePtr -> RawOnscreenTargetPtr
+foreign import ccall unsafe "sgec_renderer_device_ffp_onscreen_target" sgeOnscreenTarget :: RawDevicePtr -> RawOnscreenTargetPtr
 
 onscreenTarget :: DevicePtr -> OnscreenTargetPtr
 onscreenTarget renderer =
