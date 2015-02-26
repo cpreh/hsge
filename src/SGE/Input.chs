@@ -3,10 +3,12 @@
 module SGE.Input (
 	KeyboardPtr,
 	KeyCallback,
+	KeyRepeatCallback,
 	KeyboardKey(..),
 	KeyState(..),
 	RawKeyboardPtr,
-	withKeyCallback
+	withKeyCallback,
+	withKeyRepeatCallback
 )
 
 #include <sgec/input/keyboard/device.h>
@@ -48,14 +50,14 @@ import System.IO ( IO )
 import Text.Show ( Show, show )
 
 data KeyboardStruct
-
 type RawKeyboardPtr = Ptr KeyboardStruct
-
 type KeyboardPtr = ForeignPtr KeyboardStruct
 
 type RawKeyCallback = FunPtr (CInt -> CInt -> Ptr () -> IO ())
-
 type WrappedKeyCallback = CInt -> CInt -> Ptr () -> IO ()
+
+type RawKeyRepeatCallback = FunPtr (CInt -> Ptr () -> IO ())
+type WrappedKeyRepeatCallback = CInt -> Ptr () -> IO ()
 
 {#enum sgec_input_keyboard_key_code as KeyboardKey {underscoreToCase} with prefix = "sgec_input_keyboard_key_code" add prefix = "KeyboardKey" deriving (Eq, Show)#}
 
@@ -82,3 +84,26 @@ connectKeyCallbackExn keyboard callback =
 withKeyCallback :: KeyboardPtr -> KeyCallback -> IO a -> IO a
 withKeyCallback keyboard callback function =
 	bracket (connectKeyCallbackExn keyboard callback) SGE.Signal.destroy (\_ -> function)
+
+
+foreign import ccall unsafe "sgec_input_keyboard_device_connect_key_repeat_callback" sgeConnectRepeatKey :: RawKeyboardPtr -> RawKeyRepeatCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
+
+foreign import ccall unsafe "wrapper" wrapKeyRepeatCallback :: WrappedKeyRepeatCallback -> IO RawKeyRepeatCallback
+
+type KeyRepeatCallback = KeyboardKey -> IO ()
+
+-- TODO: We need to free the wrapped key callback
+connectKeyRepeatCallback :: KeyboardPtr -> KeyRepeatCallback -> IO (Maybe SGE.Signal.ConnectionPtr)
+connectKeyRepeatCallback keyboard callback =
+	withForeignPtr keyboard $ \kp ->
+	(wrapKeyRepeatCallback $ \key -> \_ -> callback (toEnum $ fromCInt key))
+	>>= \wrappedRepeatCallback -> sgeConnectRepeatKey kp wrappedRepeatCallback nullPtr
+	>>= maybePeek newForeignPtr_
+
+connectKeyRepeatCallbackExn :: KeyboardPtr -> KeyRepeatCallback -> IO SGE.Signal.ConnectionPtr
+connectKeyRepeatCallbackExn keyboard callback =
+	failMaybe "connect key callback" (connectKeyRepeatCallback keyboard callback)
+
+withKeyRepeatCallback :: KeyboardPtr -> KeyRepeatCallback -> IO a -> IO a
+withKeyRepeatCallback keyboard callback function =
+	bracket (connectKeyRepeatCallbackExn keyboard callback) SGE.Signal.destroy (\_ -> function)
