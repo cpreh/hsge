@@ -7,6 +7,7 @@ module SGE.Utils (
 	failWithMessage,
 	fromCInt,
 	fromCUInt,
+	maybeString,
 	toCFloat,
 	toCInt,
         toCUChar,
@@ -18,25 +19,17 @@ module SGE.Utils (
 where
 
 import Control.Monad ( liftM, return )
-
 import Data.Function ( ($) )
-
 import Data.Int ( Int )
-
 import Data.Maybe ( Maybe(Just, Nothing) )
-
 import Data.Word ( Word8 )
-
 import Data.String ( String )
-
 import Foreign.C ( CFloat, CInt, CUChar, CUInt, CSize )
-
+import Foreign.C.String ( CString, withCString )
+import Foreign.Ptr ( nullPtr )
 import Prelude ( Enum(toEnum), Float, Integral, fromIntegral, realToFrac )
-
 import SGE.Types ( Result(..) )
-
 import System.IO ( IO )
-
 import System.IO.Error ( ioError, userError )
 
 failWithMessage :: String -> IO a
@@ -84,3 +77,9 @@ toCSize = fromIntegral
 
 toResult :: Int -> Result
 toResult = toEnum
+
+maybeString :: Maybe String -> (CString -> IO a) -> IO a
+maybeString s f =
+	case s of
+		Nothing -> f nullPtr
+		Just x -> withCString x f

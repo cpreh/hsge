@@ -17,18 +17,19 @@ where
 import Control.Exception( bracket )
 import Control.Monad ( (>>=) )
 import Data.Function ( ($) )
-import Data.Maybe ( Maybe )
+import Data.Int ( Int )
+import Data.Maybe ( Maybe, fromMaybe )
 import Data.String ( String )
 import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
 import Foreign.C ( CInt(..), CUInt(..), CWString )
-import Foreign.C.String ( withCWString )
+import Foreign.C.String ( CString, withCWString )
 import Foreign.Marshal.Utils ( maybePeek )
 import Foreign.Ptr ( Ptr )
 import System.IO ( IO )
 import SGE.Image ( RGBA, convertRGBA )
 import qualified SGE.Renderer ( ContextPtr, DevicePtr, RawContextPtr, RawDevicePtr )
 import SGE.Types ( Pos, posX, posY )
-import SGE.Utils ( failMaybe, failResultIO, toCInt )
+import SGE.Utils ( failMaybe, failResultIO, maybeString, toCInt )
 
 data SystemStruct
 type RawSystemPtr = Ptr SystemStruct
@@ -38,17 +39,17 @@ data ObjectStruct
 type RawObjectPtr = Ptr ObjectStruct
 type ObjectPtr = ForeignPtr ObjectStruct
 
-foreign import ccall unsafe "sgec_font_system_create_font" sgeCreateFont :: RawSystemPtr -> IO RawObjectPtr
+foreign import ccall unsafe "sgec_font_system_create_font" sgeCreateFont :: RawSystemPtr -> CString -> CInt -> IO RawObjectPtr
 
-createFont :: SystemPtr -> IO (Maybe ObjectPtr)
-createFont system =
+createFont :: SystemPtr -> Maybe String -> Maybe Int -> IO (Maybe ObjectPtr)
+createFont system family size =
            withForeignPtr system $ \psystem ->
-           sgeCreateFont psystem
+           maybeString family $ \pfamily -> sgeCreateFont psystem pfamily (toCInt (fromMaybe (-1) size))
            >>= maybePeek newForeignPtr_
 
-createFontExn :: SystemPtr -> IO ObjectPtr
-createFontExn system =
-              failMaybe "createFont" (createFont system)
+createFontExn :: SystemPtr -> Maybe String -> Maybe Int -> IO ObjectPtr
+createFontExn system family size =
+              failMaybe "createFont" (createFont system family size)
 
 foreign import ccall unsafe "sgec_font_object_destroy" sgeDestroyFont :: RawObjectPtr -> IO ()
 
@@ -56,9 +57,9 @@ destroyFont :: ObjectPtr -> IO ()
 destroyFont font =
             withForeignPtr font sgeDestroyFont
 
-withFont :: SystemPtr -> (ObjectPtr -> IO a) -> IO a
-withFont system function =
-         bracket (createFontExn system) destroyFont function
+withFont :: SystemPtr -> Maybe String -> Maybe Int -> (ObjectPtr -> IO a) -> IO a
+withFont system family size function =
+         bracket (createFontExn system family size) destroyFont function
 
 foreign import ccall unsafe "sgec_font_draw_simple" sgeDrawFont :: SGE.Renderer.RawDevicePtr -> SGE.Renderer.RawContextPtr -> RawObjectPtr -> CWString -> CInt -> CInt -> CUInt -> IO (CInt)
 
