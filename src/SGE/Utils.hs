@@ -7,6 +7,7 @@ module SGE.Utils (
 	failWithMessage,
 	fromCInt,
 	fromCUInt,
+	fromCSize,
 	maybeString,
 	toCFloat,
 	toCInt,
@@ -59,6 +60,9 @@ fromCInt = fromIntegral
 
 fromCUInt :: Integral a => CUInt -> a
 fromCUInt = fromIntegral
+
+fromCSize :: Integral a => CSize -> a
+fromCSize = fromIntegral
 
 toCUInt :: Integral a => a -> CUInt
 toCUInt = fromIntegral

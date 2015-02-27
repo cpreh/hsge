@@ -4,10 +4,15 @@ module SGE.Types (
 	Result(..),
 	Dim(..),
 	Pos(..),
+	Rect(..),
 	posX,
 	posY,
 	dimW,
-	dimH
+	dimH,
+	rectX,
+	rectY,
+	rectW,
+	rectH
 )
 
 where
@@ -36,6 +41,9 @@ data Dim = Dim (Int, Int)
 data Pos = Pos (Int, Int)
 	deriving(Eq)
 
+data Rect = Rect (Pos, Dim)
+	deriving(Eq)
+
 posX :: Pos -> Int
 posX (Pos (x, _)) = x
 
@@ -47,3 +55,15 @@ dimW (Dim (w, _)) = w
 
 dimH :: Dim -> Int
 dimH (Dim (_, h)) = h
+
+rectX :: Rect -> Int
+rectX (Rect (pos, _)) = posX pos
+
+rectY :: Rect -> Int
+rectY (Rect (pos, _)) = posY pos
+
+rectW :: Rect -> Int
+rectW (Rect (_, dim)) = dimW dim
+
+rectH :: Rect -> Int
+rectH (Rect (_, dim)) = dimH dim

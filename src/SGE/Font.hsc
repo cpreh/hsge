@@ -1,6 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module SGE.Font (
+       AddedPtr,
        ObjectPtr,
        RawSystemPtr,
        SystemPtr,
