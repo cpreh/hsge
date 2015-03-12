@@ -18,18 +18,17 @@ module SGE.Input (
 where
 
 import Control.Exception ( bracket )
-import Control.Monad ( (>>), return )
 import Data.Eq ( Eq )
 import Data.Function ( ($) )
 import Data.List ( (++) )
 import Data.Maybe ( Maybe )
 import Data.Ord ( compare, Ordering(EQ, LT, GT))
-import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
+import Foreign ( ForeignPtr, withForeignPtr )
 import Foreign.C ( CInt(..) )
 import Foreign.Marshal.Utils ( maybePeek )
-import Foreign.Ptr ( FunPtr, Ptr, freeHaskellFunPtr, nullPtr )
+import Foreign.Ptr ( FunPtr, Ptr, nullPtr )
 import Prelude ( Enum (enumFromTo, enumFrom, fromEnum, pred, succ, toEnum),  error )
-import qualified SGE.Signal ( ConnectionPtr, RawConnectionPtr, destroy )
+import qualified SGE.Signal ( ConnectionPtr, RawConnectionPtr, destroyCallback, makeCallbackState )
 import SGE.Utils ( failMaybe, fromCInt )
 import System.IO ( IO )
 import Text.Show ( Show, show )
@@ -59,9 +58,7 @@ connectKeyCallback keyboard callback =
 	withForeignPtr keyboard $ \kp -> do
 		       rawCallback <- wrapKeyCallback $ \key -> \value -> \_ -> callback (toEnum $ fromCInt key) (toEnum $ fromCInt value)
 		       wrappedCallback <- sgeConnectKey kp rawCallback nullPtr
-		       maybePeek (\c -> do
-		                 ptr <- newForeignPtr_ c
-	                         return (ptr, rawCallback)) wrappedCallback
+		       maybePeek (SGE.Signal.makeCallbackState rawCallback) wrappedCallback
 
 connectKeyCallbackExn :: KeyboardPtr -> KeyCallback -> IO (SGE.Signal.ConnectionPtr, RawKeyCallback)
 connectKeyCallbackExn keyboard callback =
@@ -69,7 +66,7 @@ connectKeyCallbackExn keyboard callback =
 
 withKeyCallback :: KeyboardPtr -> KeyCallback -> IO a -> IO a
 withKeyCallback keyboard callback function =
-	bracket (connectKeyCallbackExn keyboard callback) (\(con, cb) -> SGE.Signal.destroy con >> freeHaskellFunPtr cb) (\_ -> function)
+	bracket (connectKeyCallbackExn keyboard callback) SGE.Signal.destroyCallback (\_ -> function)
 
 
 foreign import ccall unsafe "sgec_input_keyboard_device_connect_key_repeat_callback" sgeConnectRepeatKey :: RawKeyboardPtr -> RawKeyRepeatCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
@@ -83,9 +80,7 @@ connectKeyRepeatCallback keyboard callback =
 	withForeignPtr keyboard $ \kp -> do
 		       rawCallback <- wrapKeyRepeatCallback $ \key -> \_ -> callback (toEnum $ fromCInt key)
 		       wrappedCallback <- sgeConnectRepeatKey kp rawCallback nullPtr
-		       maybePeek (\c -> do
-	                         ptr <- newForeignPtr_ c
-                                 return (ptr, rawCallback)) wrappedCallback
+		       maybePeek (SGE.Signal.makeCallbackState rawCallback) wrappedCallback
 
 connectKeyRepeatCallbackExn :: KeyboardPtr -> KeyRepeatCallback -> IO (SGE.Signal.ConnectionPtr, RawKeyRepeatCallback)
 connectKeyRepeatCallbackExn keyboard callback =
@@ -93,4 +88,4 @@ connectKeyRepeatCallbackExn keyboard callback =
 
 withKeyRepeatCallback :: KeyboardPtr -> KeyRepeatCallback -> IO a -> IO a
 withKeyRepeatCallback keyboard callback function =
-	bracket (connectKeyRepeatCallbackExn keyboard callback) (\(con, cb) -> SGE.Signal.destroy con >> freeHaskellFunPtr cb) (\_ -> function)
+	bracket (connectKeyRepeatCallbackExn keyboard callback) SGE.Signal.destroyCallback (\_ -> function)
