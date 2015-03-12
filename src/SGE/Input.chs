@@ -18,35 +18,20 @@ module SGE.Input (
 where
 
 import Control.Exception ( bracket )
-
-import Control.Monad ( (>>=) )
-
+import Control.Monad ( (>>), return )
 import Data.Eq ( Eq )
-
 import Data.Function ( ($) )
-
 import Data.List ( (++) )
-
 import Data.Maybe ( Maybe )
-
 import Data.Ord ( compare, Ordering(EQ, LT, GT))
-
 import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
-
 import Foreign.C ( CInt(..) )
-
 import Foreign.Marshal.Utils ( maybePeek )
-
-import Foreign.Ptr ( FunPtr, Ptr, nullPtr )
-
+import Foreign.Ptr ( FunPtr, Ptr, freeHaskellFunPtr, nullPtr )
 import Prelude ( Enum (enumFromTo, enumFrom, fromEnum, pred, succ, toEnum),  error )
-
 import qualified SGE.Signal ( ConnectionPtr, RawConnectionPtr, destroy )
-
 import SGE.Utils ( failMaybe, fromCInt )
-
 import System.IO ( IO )
-
 import Text.Show ( Show, show )
 
 data KeyboardStruct
@@ -69,21 +54,22 @@ foreign import ccall unsafe "wrapper" wrapKeyCallback :: WrappedKeyCallback -> I
 
 type KeyCallback = KeyboardKey -> KeyState -> IO ()
 
--- TODO: We need to free the wrapped key callback
-connectKeyCallback :: KeyboardPtr -> KeyCallback -> IO (Maybe SGE.Signal.ConnectionPtr)
+connectKeyCallback :: KeyboardPtr -> KeyCallback -> IO (Maybe (SGE.Signal.ConnectionPtr, RawKeyCallback))
 connectKeyCallback keyboard callback =
-	withForeignPtr keyboard $ \kp ->
-	(wrapKeyCallback $ \key -> \value -> \_ -> callback (toEnum $ fromCInt key) (toEnum $ fromCInt value))
-	>>= \wrappedCallback -> sgeConnectKey kp wrappedCallback nullPtr
-	>>= maybePeek newForeignPtr_
+	withForeignPtr keyboard $ \kp -> do
+		       rawCallback <- wrapKeyCallback $ \key -> \value -> \_ -> callback (toEnum $ fromCInt key) (toEnum $ fromCInt value)
+		       wrappedCallback <- sgeConnectKey kp rawCallback nullPtr
+		       maybePeek (\c -> do
+		                 ptr <- newForeignPtr_ c
+	                         return (ptr, rawCallback)) wrappedCallback
 
-connectKeyCallbackExn :: KeyboardPtr -> KeyCallback -> IO SGE.Signal.ConnectionPtr
+connectKeyCallbackExn :: KeyboardPtr -> KeyCallback -> IO (SGE.Signal.ConnectionPtr, RawKeyCallback)
 connectKeyCallbackExn keyboard callback =
 	failMaybe "connect key callback" (connectKeyCallback keyboard callback)
 
 withKeyCallback :: KeyboardPtr -> KeyCallback -> IO a -> IO a
 withKeyCallback keyboard callback function =
-	bracket (connectKeyCallbackExn keyboard callback) SGE.Signal.destroy (\_ -> function)
+	bracket (connectKeyCallbackExn keyboard callback) (\(con, cb) -> SGE.Signal.destroy con >> freeHaskellFunPtr cb) (\_ -> function)
 
 
 foreign import ccall unsafe "sgec_input_keyboard_device_connect_key_repeat_callback" sgeConnectRepeatKey :: RawKeyboardPtr -> RawKeyRepeatCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
@@ -92,18 +78,19 @@ foreign import ccall unsafe "wrapper" wrapKeyRepeatCallback :: WrappedKeyRepeatC
 
 type KeyRepeatCallback = KeyboardKey -> IO ()
 
--- TODO: We need to free the wrapped key callback
-connectKeyRepeatCallback :: KeyboardPtr -> KeyRepeatCallback -> IO (Maybe SGE.Signal.ConnectionPtr)
+connectKeyRepeatCallback :: KeyboardPtr -> KeyRepeatCallback -> IO (Maybe (SGE.Signal.ConnectionPtr, RawKeyRepeatCallback))
 connectKeyRepeatCallback keyboard callback =
-	withForeignPtr keyboard $ \kp ->
-	(wrapKeyRepeatCallback $ \key -> \_ -> callback (toEnum $ fromCInt key))
-	>>= \wrappedRepeatCallback -> sgeConnectRepeatKey kp wrappedRepeatCallback nullPtr
-	>>= maybePeek newForeignPtr_
+	withForeignPtr keyboard $ \kp -> do
+		       rawCallback <- wrapKeyRepeatCallback $ \key -> \_ -> callback (toEnum $ fromCInt key)
+		       wrappedCallback <- sgeConnectRepeatKey kp rawCallback nullPtr
+		       maybePeek (\c -> do
+	                         ptr <- newForeignPtr_ c
+                                 return (ptr, rawCallback)) wrappedCallback
 
-connectKeyRepeatCallbackExn :: KeyboardPtr -> KeyRepeatCallback -> IO SGE.Signal.ConnectionPtr
+connectKeyRepeatCallbackExn :: KeyboardPtr -> KeyRepeatCallback -> IO (SGE.Signal.ConnectionPtr, RawKeyRepeatCallback)
 connectKeyRepeatCallbackExn keyboard callback =
 	failMaybe "connect key callback" (connectKeyRepeatCallback keyboard callback)
 
 withKeyRepeatCallback :: KeyboardPtr -> KeyRepeatCallback -> IO a -> IO a
 withKeyRepeatCallback keyboard callback function =
-	bracket (connectKeyRepeatCallbackExn keyboard callback) SGE.Signal.destroy (\_ -> function)
+	bracket (connectKeyRepeatCallbackExn keyboard callback) (\(con, cb) -> SGE.Signal.destroy con >> freeHaskellFunPtr cb) (\_ -> function)
