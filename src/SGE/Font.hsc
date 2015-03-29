@@ -75,24 +75,24 @@ foreign import ccall unsafe "sgec_font_system_add_font" sgeAddFont :: RawSystemP
 
 addFont :: SystemPtr -> String -> IO (Maybe AddedPtr)
 addFont system path =
-	withForeignPtr system $ \psystem ->
-	withCString path $ \ppath ->
-	sgeAddFont psystem ppath
-	>>= maybePeek newForeignPtr_
+        withForeignPtr system $ \psystem ->
+        withCString path $ \ppath ->
+        sgeAddFont psystem ppath
+        >>= maybePeek newForeignPtr_
 
 addFontExn :: SystemPtr -> String -> IO AddedPtr
 addFontExn system path =
-	failMaybe "addFont" (addFont system path)
+           failMaybe "addFont" (addFont system path)
 
 foreign import ccall unsafe "sgec_font_added_destroy" sgeDestroyAdded :: RawAddedPtr -> IO ()
 
 destroyAdded :: AddedPtr -> IO ()
 destroyAdded added =
-            withForeignPtr added sgeDestroyAdded
+             withForeignPtr added sgeDestroyAdded
 
 withAdded :: SystemPtr -> String -> IO a -> IO a
 withAdded system path function =
-         bracket (addFontExn system path) destroyAdded (\_ -> function)
+          bracket (addFontExn system path) destroyAdded (\_ -> function)
 
 foreign import ccall unsafe "sgec_font_draw_simple" sgeDrawFont :: SGE.Renderer.RawDevicePtr -> SGE.Renderer.RawContextPtr -> RawObjectPtr -> CWString -> CInt -> CInt -> CUInt -> IO (CInt)
 

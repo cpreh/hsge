@@ -1,8 +1,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module SGE.Image2D (
-	RawSystemPtr,
-	SystemPtr
+       RawSystemPtr,
+       SystemPtr
 )
 
 #include <sgec/image2d/system_fwd.h>

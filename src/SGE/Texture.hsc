@@ -1,16 +1,16 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module SGE.Texture (
-	PartPtr,
-	RawPartPtr,
-	destroyPart,
-	dim,
-	height,
-	partRawExn,
-	partRawRectExn,
-	width,
-	withPartRaw,
-	withPartRawRect
+       PartPtr,
+       RawPartPtr,
+       destroyPart,
+       dim,
+       height,
+       partRawExn,
+       partRawRectExn,
+       width,
+       withPartRaw,
+       withPartRawRect
 )
 
 #include <sgec/texture/part.h>
@@ -41,51 +41,51 @@ foreign import ccall unsafe "sgec_texture_part_raw" sgeTexturePartRaw :: RawPlan
 
 partRaw :: PlanarTexturePtr -> IO (Maybe PartPtr)
 partRaw texture =
-	withForeignPtr texture $ \ptex ->
-	sgeTexturePartRaw ptex
-	>>= maybePeek newForeignPtr_
+        withForeignPtr texture $ \ptex ->
+        sgeTexturePartRaw ptex
+        >>= maybePeek newForeignPtr_
 
 partRawExn :: PlanarTexturePtr -> IO PartPtr
 partRawExn texture =
-	failMaybe "partRaw" (partRaw texture)
+           failMaybe "partRaw" (partRaw texture)
 
 foreign import ccall unsafe "sgec_texture_part_raw_rect" sgeTexturePartRawRect :: RawPlanarTexturePtr -> CSize -> CSize -> CSize -> CSize -> IO RawPartPtr
 
 partRawRect :: PlanarTexturePtr -> Rect -> IO (Maybe PartPtr)
 partRawRect texture rect =
-	withForeignPtr texture $ \ptex ->
-	sgeTexturePartRawRect ptex (toCSize $ rectX rect) (toCSize $ rectY rect) (toCSize $ rectW rect) (toCSize $ rectH rect)
-	>>= maybePeek newForeignPtr_
+            withForeignPtr texture $ \ptex ->
+            sgeTexturePartRawRect ptex (toCSize $ rectX rect) (toCSize $ rectY rect) (toCSize $ rectW rect) (toCSize $ rectH rect)
+            >>= maybePeek newForeignPtr_
 
 partRawRectExn :: PlanarTexturePtr -> Rect -> IO PartPtr
 partRawRectExn texture rect =
-	failMaybe "partRawRect" (partRawRect texture rect)
+               failMaybe "partRawRect" (partRawRect texture rect)
 
 foreign import ccall unsafe "sgec_texture_part_destroy" sgeDestroyTexturePart :: RawPartPtr -> IO ()
 
 destroyPart :: PartPtr -> IO ()
 destroyPart texture =
-	withForeignPtr texture sgeDestroyTexturePart
+            withForeignPtr texture sgeDestroyTexturePart
 
 withPartRaw :: PlanarTexturePtr -> (PartPtr -> IO a) -> IO a
 withPartRaw texture function =
-	bracket (partRawExn texture) destroyPart function
+            bracket (partRawExn texture) destroyPart function
 
 withPartRawRect :: PlanarTexturePtr -> Rect -> (PartPtr -> IO a) -> IO a
 withPartRawRect texture rect function =
-	bracket (partRawRectExn texture rect) destroyPart function
+                bracket (partRawRectExn texture rect) destroyPart function
 
 foreign import ccall unsafe "sgec_texture_part_width" sgeTextureWidth :: RawPartPtr -> IO CSize
 
 width :: PartPtr -> Int
 width texture =
-	fromCSize $ unsafeDupablePerformIO $ withForeignPtr texture sgeTextureWidth
+      fromCSize $ unsafeDupablePerformIO $ withForeignPtr texture sgeTextureWidth
 
 foreign import ccall unsafe "sgec_texture_part_height" sgeTextureHeight :: RawPartPtr -> IO CSize
 
 height :: PartPtr -> Int
 height texture =
-	fromCSize $ unsafeDupablePerformIO $ withForeignPtr texture sgeTextureHeight
+       fromCSize $ unsafeDupablePerformIO $ withForeignPtr texture sgeTextureHeight
 
 dim :: PartPtr -> Dim
 dim texture = Dim (width texture, height texture)

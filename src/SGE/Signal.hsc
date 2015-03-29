@@ -27,14 +27,14 @@ foreign import ccall unsafe "sgec_signal_connection_destroy" sgeDestroyConnectio
 
 destroy :: ConnectionPtr -> IO ()
 destroy sig =
-	withForeignPtr sig sgeDestroyConnection
+        withForeignPtr sig sgeDestroyConnection
 
 type CallbackState a = (SGE.Signal.ConnectionPtr, FunPtr a)
 
 makeCallbackState :: FunPtr a -> SGE.Signal.RawConnectionPtr -> IO (CallbackState a)
 makeCallbackState fun ptr = do
-		  fptr <- newForeignPtr_ ptr
-		  return (fptr, fun)
+                  fptr <- newForeignPtr_ ptr
+                  return (fptr, fun)
 
 destroyCallback :: CallbackState a -> IO ()
 destroyCallback (ptr, fun) = destroy ptr >> freeHaskellFunPtr fun

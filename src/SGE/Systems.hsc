@@ -60,9 +60,9 @@ foreign import ccall unsafe "sgec_systems_instance_destroy" sgeSystemsDestroy ::
 
 create :: String -> IO (Maybe InstancePtr)
 create title =
-	withCString title $ \titlePtr ->
-	sgeSystemsCreate titlePtr
-	>>= maybePeek newForeignPtr_
+       withCString title $ \titlePtr ->
+       sgeSystemsCreate titlePtr
+       >>= maybePeek newForeignPtr_
 
 createExn :: String -> IO (InstancePtr)
 createExn title = failMaybe "create system instance" (create title)
@@ -72,11 +72,11 @@ destroy ptr = withForeignPtr ptr sgeSystemsDestroy
 
 with :: String -> (InstancePtr -> IO a) -> IO a
 with title func =
-	bracket (createExn title) destroy func
+     bracket (createExn title) destroy func
 
 extractSystem :: (RawInstancePtr -> Ptr a) -> InstancePtr -> ForeignPtr a
 extractSystem func inst =
-	unsafeDupablePerformIO $ withForeignPtr inst $ \ptr -> newForeignPtr_ (func ptr)
+              unsafeDupablePerformIO $ withForeignPtr inst $ \ptr -> newForeignPtr_ (func ptr)
 
 foreign import ccall unsafe "sgec_systems_instance_renderer" sgeSystemsRenderer :: RawInstancePtr -> SGE.Renderer.RawDevicePtr
 

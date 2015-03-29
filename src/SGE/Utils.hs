@@ -1,20 +1,20 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module SGE.Utils (
-	failMaybe,
-	failResult,
-	failResultIO,
-	failWithMessage,
-	fromCInt,
-	fromCUInt,
-	fromCSize,
-	maybeString,
-	toCFloat,
-	toCInt,
-        toCUChar,
-	toCUInt,
-	toCSize,
-	toResult
+       failMaybe,
+       failResult,
+       failResultIO,
+       failWithMessage,
+       fromCInt,
+       fromCUInt,
+       fromCSize,
+       maybeString,
+       toCFloat,
+       toCInt,
+       toCUChar,
+       toCUInt,
+       toCSize,
+       toResult
 )
 
 where
@@ -35,25 +35,25 @@ import System.IO.Error ( ioError, userError )
 
 failWithMessage :: String -> IO a
 failWithMessage message =
-	ioError $ userError $ message
+                ioError $ userError $ message
 
 failMaybe :: String -> IO (Maybe a) -> IO a
 failMaybe message action = do
-	val <- action
-	case val of
-		Just a -> return a
-		Nothing -> failWithMessage message
+          val <- action
+          case val of
+               Just a -> return a
+               Nothing -> failWithMessage message
 
 failResult :: String -> IO Result -> IO ()
 failResult message action = do
-	val <- action
-	case val of
-		ResultOk -> return ()
-		ResultError -> failWithMessage message
+           val <- action
+           case val of
+                ResultOk -> return ()
+                ResultError -> failWithMessage message
 
 failResultIO :: String -> IO CInt -> IO ()
 failResultIO message action =
-	failResult message $ liftM toResult $ liftM fromCInt $ action
+             failResult message $ liftM toResult $ liftM fromCInt $ action
 
 fromCInt :: Integral a => CInt -> a
 fromCInt = fromIntegral
@@ -84,6 +84,6 @@ toResult = toEnum
 
 maybeString :: Maybe String -> (CString -> IO a) -> IO a
 maybeString s f =
-	case s of
-		Nothing -> f nullPtr
-		Just x -> withCString x f
+            case s of
+                 Nothing -> f nullPtr
+                 Just x -> withCString x f
