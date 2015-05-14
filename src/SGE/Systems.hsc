@@ -15,37 +15,24 @@ module SGE.Systems (
 where
 
 import Control.Exception( bracket )
-
 import Control.Monad ( (>>=) )
-
 import Data.Function ( ($) )
-
-import Data.Maybe ( Maybe )
-
+import Data.Maybe ( Maybe, fromMaybe )
 import Data.String ( String )
-
 import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
-
 import Foreign.C ( CString, withCString )
-
+import Foreign.C.Types ( CUInt(..) )
 import Foreign.Marshal.Utils ( maybePeek )
-
 import Foreign.Ptr ( Ptr )
-
 import System.IO.Unsafe ( unsafeDupablePerformIO )
 
 import qualified SGE.Font ( RawSystemPtr, SystemPtr )
-
 import qualified SGE.Image2D ( RawSystemPtr, SystemPtr )
-
 import qualified SGE.Input ( RawKeyboardPtr, KeyboardPtr )
-
 import qualified SGE.Renderer ( RawDevicePtr, DevicePtr )
-
-import SGE.Utils ( failMaybe )
-
+import SGE.Types ( Dim(..), dimW, dimH )
+import SGE.Utils ( failMaybe, toCUInt )
 import qualified SGE.Window ( RawSystemPtr, SystemPtr )
-
 import System.IO ( IO )
 
 data InstanceStruct
@@ -54,25 +41,26 @@ type RawInstancePtr = Ptr InstanceStruct
 
 type InstancePtr = ForeignPtr InstanceStruct
 
-foreign import ccall unsafe "sgec_systems_instance_create" sgeSystemsCreate :: CString -> IO RawInstancePtr
+foreign import ccall unsafe "sgec_systems_instance_create" sgeSystemsCreate :: CString -> CUInt -> CUInt -> IO RawInstancePtr
 
 foreign import ccall unsafe "sgec_systems_instance_destroy" sgeSystemsDestroy :: RawInstancePtr -> IO ()
 
-create :: String -> IO (Maybe InstancePtr)
-create title =
+create :: String -> Maybe Dim -> IO (Maybe InstancePtr)
+create title dim =
+       let realDim = fromMaybe (Dim (0,0)) dim in
        withCString title $ \titlePtr ->
-       sgeSystemsCreate titlePtr
+       sgeSystemsCreate titlePtr (toCUInt (dimW realDim)) (toCUInt (dimH realDim))
        >>= maybePeek newForeignPtr_
 
-createExn :: String -> IO (InstancePtr)
-createExn title = failMaybe "create system instance" (create title)
+createExn :: String -> Maybe Dim -> IO (InstancePtr)
+createExn title dim = failMaybe "create system instance" (create title dim)
 
 destroy :: InstancePtr -> IO ()
 destroy ptr = withForeignPtr ptr sgeSystemsDestroy
 
-with :: String -> (InstancePtr -> IO a) -> IO a
-with title func =
-     bracket (createExn title) destroy func
+with :: String -> Maybe Dim -> (InstancePtr -> IO a) -> IO a
+with title dim func =
+     bracket (createExn title dim) destroy func
 
 extractSystem :: (RawInstancePtr -> Ptr a) -> InstancePtr -> ForeignPtr a
 extractSystem func inst =
