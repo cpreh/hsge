@@ -13,8 +13,9 @@ import Control.Monad ( return )
 import Data.Eq ( Eq )
 import Data.Function ( ($) )
 import Data.List ( map )
+import Data.Maybe ( Maybe, fromMaybe )
 import Foreign ( Storable(..) )
-import Foreign.C ( CFloat, CInt, CSize(..) )
+import Foreign.C ( CFloat, CInt, CUInt(..), CSize(..) )
 import Foreign.ForeignPtr ( withForeignPtr )
 import Foreign.ForeignPtr.Unsafe ( unsafeForeignPtrToPtr )
 import Foreign.Marshal.Array ( withArrayLen )
@@ -22,8 +23,8 @@ import Foreign.Ptr ( Ptr )
 import Prelude ( Float )
 import SGE.Renderer ( ContextPtr, DevicePtr, RawContextPtr, RawDevicePtr )
 import SGE.Texture ( PartPtr, RawPartPtr )
-import SGE.Types ( Dim, Pos, dimW, dimH, posX, posY )
-import SGE.Utils ( toCFloat, toCInt, toCSize )
+import SGE.Types ( Dim(..), Pos, dimW, dimH, posX, posY )
+import SGE.Utils ( toCFloat, toCInt, toCUInt, toCSize )
 import System.IO ( IO )
 
 data RawObject = RawObject {
@@ -63,10 +64,11 @@ instance Storable RawObject where
               (#poke struct sgec_sprite_object, height) ptr h
               (#poke struct sgec_sprite_object, rotation) ptr r
 
-foreign import ccall unsafe "sgec_sprite_draw" sgeSpriteDraw :: RawDevicePtr -> RawContextPtr -> Ptr RawObject -> CSize -> IO ()
+foreign import ccall unsafe "sgec_sprite_draw" sgeSpriteDraw :: RawDevicePtr -> RawContextPtr -> CUInt -> CUInt -> Ptr RawObject -> CSize -> IO ()
 
-draw :: DevicePtr -> ContextPtr -> [Object] -> IO ()
-draw device context sprites =
+draw :: DevicePtr -> ContextPtr -> Maybe Dim -> [Object] -> IO ()
+draw device context d sprites =
+     let realDim = fromMaybe (Dim (0,0)) d in
      let toRawObject obj = RawObject {
          raw_tex = unsafeForeignPtrToPtr $ texture obj,
          raw_x = toCInt $ posX $ pos obj,
@@ -78,4 +80,4 @@ draw device context sprites =
        withArrayLen (map toRawObject sprites) $
        \length -> \array -> withForeignPtr device $
        \dp -> withForeignPtr context $
-       \cp -> sgeSpriteDraw dp cp array $ toCSize length
+       \cp -> sgeSpriteDraw dp cp (toCUInt (dimW realDim)) (toCUInt (dimH realDim)) array $ toCSize length
