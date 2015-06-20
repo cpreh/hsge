@@ -15,8 +15,21 @@ extra-source-files:  configure, configure.ac, hsge.buildinfo.in
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     SGE.Audio, SGE.Font, SGE.Image, SGE.Image2D, SGE.Input, SGE.Renderer, SGE.Signal, SGE.Sprite, SGE.Systems, SGE.Texture, SGE.Types, SGE.Window
-  other-modules:       SGE.Utils
+  exposed-modules:     SGE.Audio
+                     , SGE.Dim
+                     , SGE.Font
+                     , SGE.Image
+                     , SGE.Image2D
+                     , SGE.Input
+                     , SGE.Pos
+                     , SGE.Rect
+                     , SGE.Renderer
+                     , SGE.Signal
+                     , SGE.Sprite
+                     , SGE.Systems
+                     , SGE.Texture
+                     , SGE.Window
+  other-modules:       SGE.Result, SGE.Utils
   build-tools:         c2hs
 --  cc-options:          "-std=c99"
   build-depends:       base >=4.6
@@ -24,3 +37,4 @@ library
   default-language:    Haskell2010
   extra-libraries:     sgec
   ghc-options:         -Wall
+  default-extensions:  NoImplicitPrelude

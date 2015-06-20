@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module SGE.Input (
        KeyboardPtr,
        KeyCallback,

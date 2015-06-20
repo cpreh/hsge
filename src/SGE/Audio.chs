@@ -1,8 +1,7 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module SGE.Audio (
        RawLoaderPtr,
        LoaderPtr,
+       Repeat(..),
        createBuffer,
        createSound,
        destroyBuffer,

@@ -33,7 +33,7 @@ import qualified SGE.Font ( RawSystemPtr, SystemPtr )
 import qualified SGE.Image2D ( RawSystemPtr, SystemPtr )
 import qualified SGE.Input ( RawKeyboardPtr, KeyboardPtr )
 import qualified SGE.Renderer ( RawDevicePtr, DevicePtr )
-import SGE.Types ( Dim(..), dimW, dimH )
+import SGE.Dim ( Dim(..), dimW, dimH )
 import SGE.Utils ( failMaybe, toCUInt )
 import qualified SGE.Window ( RawSystemPtr, SystemPtr )
 

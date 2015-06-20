@@ -34,7 +34,7 @@ import Foreign.Ptr ( Ptr )
 import System.IO ( IO )
 import SGE.Image ( RGBA, convertRGBA )
 import qualified SGE.Renderer ( ContextPtr, DevicePtr, RawContextPtr, RawDevicePtr )
-import SGE.Types ( Pos, posX, posY )
+import SGE.Pos ( Pos, posX, posY )
 import SGE.Utils ( failMaybe, failResultIO, maybeString, toCInt )
 
 data SystemStruct

@@ -29,7 +29,7 @@ import Foreign.C ( CFloat, CInt, CUChar, CUInt, CSize )
 import Foreign.C.String ( CString, withCString )
 import Foreign.Ptr ( nullPtr )
 import Prelude ( Enum(toEnum), Float, Integral, fromIntegral, realToFrac )
-import SGE.Types ( Result(..) )
+import SGE.Result ( Result(..) )
 import System.IO ( IO )
 import System.IO.Error ( ioError, userError )
 
