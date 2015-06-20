@@ -2,6 +2,7 @@
 
 module SGE.Systems (
        InstancePtr,
+       audioLoader,
        fontSystem,
        imageSystem,
        keyboard,
@@ -24,8 +25,10 @@ import Foreign.C ( CString, withCString )
 import Foreign.C.Types ( CUInt(..) )
 import Foreign.Marshal.Utils ( maybePeek )
 import Foreign.Ptr ( Ptr )
+import System.IO ( IO )
 import System.IO.Unsafe ( unsafeDupablePerformIO )
 
+import qualified SGE.Audio ( RawLoaderPtr, LoaderPtr )
 import qualified SGE.Font ( RawSystemPtr, SystemPtr )
 import qualified SGE.Image2D ( RawSystemPtr, SystemPtr )
 import qualified SGE.Input ( RawKeyboardPtr, KeyboardPtr )
@@ -33,7 +36,6 @@ import qualified SGE.Renderer ( RawDevicePtr, DevicePtr )
 import SGE.Types ( Dim(..), dimW, dimH )
 import SGE.Utils ( failMaybe, toCUInt )
 import qualified SGE.Window ( RawSystemPtr, SystemPtr )
-import System.IO ( IO )
 
 data InstanceStruct
 
@@ -90,3 +92,8 @@ foreign import ccall unsafe "sgec_systems_instance_font_system" sgeSystemsFontSy
 
 fontSystem :: InstancePtr -> SGE.Font.SystemPtr
 fontSystem = extractSystem sgeSystemsFontSystem
+
+foreign import ccall unsafe "sgec_systems_instance_audio_loader" sgeSystemsAudioLoader :: RawInstancePtr -> SGE.Audio.RawLoaderPtr
+
+audioLoader :: InstancePtr -> SGE.Audio.LoaderPtr
+audioLoader = extractSystem sgeSystemsAudioLoader

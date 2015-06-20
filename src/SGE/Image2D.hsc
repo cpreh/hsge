@@ -10,7 +10,6 @@ module SGE.Image2D (
 where
 
 import Foreign ( ForeignPtr )
-
 import Foreign.Ptr ( Ptr )
 
 data SystemStruct
