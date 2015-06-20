@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module SGE.Renderer (
        ContextPtr,
        DevicePtr,
@@ -42,12 +40,13 @@ import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
 import Foreign.Marshal.Utils ( maybePeek )
 import Foreign.C ( CInt(..), CUInt(..), CString, withCString )
 import Foreign.Ptr ( Ptr )
+import System.IO ( IO )
+import System.IO.Unsafe ( unsafeDupablePerformIO )
+
 import SGE.Dim ( Dim(..) )
 import SGE.Image ( convertRGBA, RGBA )
 import qualified SGE.Image2D ( RawSystemPtr, SystemPtr )
 import SGE.Utils ( failMaybe, failResultIO, fromCUInt )
-import System.IO ( IO )
-import System.IO.Unsafe ( unsafeDupablePerformIO )
 
 data DeviceStruct
 type RawDevicePtr = Ptr DeviceStruct

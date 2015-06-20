@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module SGE.Sprite (
        Object(..),
        draw
@@ -21,12 +19,13 @@ import Foreign.ForeignPtr.Unsafe ( unsafeForeignPtrToPtr )
 import Foreign.Marshal.Array ( withArrayLen )
 import Foreign.Ptr ( Ptr )
 import Prelude ( Float )
+import System.IO ( IO )
+
 import SGE.Dim ( Dim(..), dimW, dimH )
 import SGE.Pos ( Pos, posX, posY )
 import SGE.Renderer ( ContextPtr, DevicePtr, RawContextPtr, RawDevicePtr )
 import SGE.Texture ( PartPtr, RawPartPtr )
 import SGE.Utils ( toCFloat, toCInt, toCUInt, toCSize )
-import System.IO ( IO )
 
 data RawObject = RawObject {
      raw_tex :: RawPartPtr,

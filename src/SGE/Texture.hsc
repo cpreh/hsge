@@ -27,12 +27,13 @@ import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
 import Foreign.C ( CSize(..) )
 import Foreign.Ptr ( Ptr )
 import Foreign.Marshal.Utils ( maybePeek )
+import System.IO ( IO )
+import System.IO.Unsafe ( unsafeDupablePerformIO )
+
 import SGE.Dim ( Dim(..) )
 import SGE.Rect ( Rect, rectX, rectY, rectW, rectH )
 import SGE.Renderer ( PlanarTexturePtr, RawPlanarTexturePtr )
 import SGE.Utils ( failMaybe, fromCSize, toCSize )
-import System.IO ( IO )
-import System.IO.Unsafe ( unsafeDupablePerformIO )
 
 data PartStruct
 type RawPartPtr = Ptr PartStruct

@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module SGE.Utils (
        failMaybe,
        failResult,
@@ -29,9 +27,10 @@ import Foreign.C ( CFloat, CInt, CUChar, CUInt, CSize )
 import Foreign.C.String ( CString, withCString )
 import Foreign.Ptr ( nullPtr )
 import Prelude ( Enum(toEnum), Float, Integral, fromIntegral, realToFrac )
-import SGE.Result ( Result(..) )
 import System.IO ( IO )
 import System.IO.Error ( ioError, userError )
+
+import SGE.Result ( Result(..) )
 
 failWithMessage :: String -> IO a
 failWithMessage message =

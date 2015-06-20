@@ -3,6 +3,7 @@
 module SGE.Systems (
        InstancePtr,
        audioLoader,
+       audioPlayer,
        fontSystem,
        imageSystem,
        keyboard,
@@ -28,7 +29,7 @@ import Foreign.Ptr ( Ptr )
 import System.IO ( IO )
 import System.IO.Unsafe ( unsafeDupablePerformIO )
 
-import qualified SGE.Audio ( RawLoaderPtr, LoaderPtr )
+import qualified SGE.Audio ( LoaderPtr, PlayerPtr, RawLoaderPtr, RawPlayerPtr )
 import qualified SGE.Font ( RawSystemPtr, SystemPtr )
 import qualified SGE.Image2D ( RawSystemPtr, SystemPtr )
 import qualified SGE.Input ( RawKeyboardPtr, KeyboardPtr )
@@ -97,3 +98,8 @@ foreign import ccall unsafe "sgec_systems_instance_audio_loader" sgeSystemsAudio
 
 audioLoader :: InstancePtr -> SGE.Audio.LoaderPtr
 audioLoader = extractSystem sgeSystemsAudioLoader
+
+foreign import ccall unsafe "sgec_systems_instance_audio_player" sgeSystemsAudioPlayer :: RawInstancePtr -> SGE.Audio.RawPlayerPtr
+
+audioPlayer :: InstancePtr -> SGE.Audio.PlayerPtr
+audioPlayer = extractSystem sgeSystemsAudioPlayer

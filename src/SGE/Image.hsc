@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module SGE.Image (
        RGBA(RGBA, colorAlpha, colorBlue, colorGreen, colorRed),
        convertRGBA,
@@ -11,9 +9,7 @@ module SGE.Image (
 where
 
 import Data.Function ( ($) )
-
 import Data.Word ( Word8 )
-
 import Foreign.C ( CUChar(..), CUInt(..) )
 
 import SGE.Utils ( toCUChar )

@@ -26,10 +26,11 @@ import Foreign.C ( CInt(..) )
 import Foreign.Marshal.Utils ( maybePeek )
 import Foreign.Ptr ( FunPtr, Ptr, nullPtr )
 import Prelude ( Enum (enumFromTo, enumFrom, fromEnum, pred, succ, toEnum),  error )
-import qualified SGE.Signal ( ConnectionPtr, RawConnectionPtr, destroyCallback, makeCallbackState )
-import SGE.Utils ( failMaybe, fromCInt )
 import System.IO ( IO )
 import Text.Show ( Show, show )
+
+import qualified SGE.Signal ( ConnectionPtr, RawConnectionPtr, destroyCallback, makeCallbackState )
+import SGE.Utils ( failMaybe, fromCInt )
 
 data KeyboardStruct
 type RawKeyboardPtr = Ptr KeyboardStruct

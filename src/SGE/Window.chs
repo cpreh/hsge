@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module SGE.Window (
        SystemPtr,
        RawSystemPtr,
@@ -8,47 +6,25 @@ module SGE.Window (
 )
 
 #include <sgec/window/system.h>
+#include <sgec/window/system_poll_result.h>
 
 where
 
 import Control.Monad ( liftM, return )
-
 import Data.Bool( Bool(False, True) )
-
 import Data.Eq ( Eq )
-
 import Data.Function ( ($) )
-
 import Data.Int ( Int )
-
 import Foreign ( ForeignPtr, withForeignPtr )
-
 import Foreign.C ( CInt(..) )
-
 import Foreign.Ptr ( Ptr )
-
-import Prelude ( Enum (fromEnum, toEnum), error )
+import Prelude ( Enum( toEnum ) )
+import System.IO ( IO )
+import Text.Show ( Show )
 
 import SGE.Utils ( failResultIO, failWithMessage, fromCInt, toCInt )
 
-import System.IO ( IO )
-
-data PollResult =
-     PollResultRunning
-     | PollResultFinished
-     | PollResultError
-     deriving(Eq)
-
--- TODO: Use c2hs
-instance Enum PollResult where
-         fromEnum PollResultRunning = 0
-         fromEnum PollResultFinished = 1
-         fromEnum PollResultError = 2
-
-         toEnum 0 = PollResultRunning
-         toEnum 1 = PollResultFinished
-         toEnum 2 = PollResultError
-         toEnum _ = error "invalid poll result"
+{#enum sgec_window_system_poll_result as PollResult {underscoreToCase} with prefix = "sgec_window_system_poll_result" add prefix = "PollResult" deriving (Eq, Show)#}
 
 data SystemStruct
 
@@ -63,9 +39,9 @@ poll system =
      withForeignPtr system $ \ptr -> do
                     result <- liftM toEnum $ liftM fromCInt $ sgeWindowPoll ptr
                     case result of
-                         PollResultRunning -> return True
-                         PollResultFinished -> return False
-                         PollResultError -> failWithMessage "poll"
+                         PollresultRunning -> return True
+                         PollresultFinished -> return False
+                         PollresultError -> failWithMessage "poll"
 
 
 foreign import ccall unsafe "sgec_window_system_quit" sgeWindowQuit :: RawSystemPtr -> CInt -> IO (CInt)

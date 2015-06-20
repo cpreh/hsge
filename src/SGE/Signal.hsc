@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module SGE.Signal (
        CallbackState,
        ConnectionPtr,
@@ -18,9 +16,7 @@ import Foreign.Ptr ( FunPtr, Ptr, freeHaskellFunPtr )
 import System.IO ( IO )
 
 data ConnectionStruct
-
 type RawConnectionPtr = Ptr ConnectionStruct
-
 type ConnectionPtr = ForeignPtr ConnectionStruct
 
 foreign import ccall unsafe "sgec_signal_connection_destroy" sgeDestroyConnection :: RawConnectionPtr -> IO ()

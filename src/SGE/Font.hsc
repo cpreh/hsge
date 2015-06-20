@@ -1,5 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
 module SGE.Font (
        AddedPtr,
        ObjectPtr,
@@ -32,6 +30,7 @@ import Foreign.C.String ( CString, withCString, withCWString )
 import Foreign.Marshal.Utils ( maybePeek )
 import Foreign.Ptr ( Ptr )
 import System.IO ( IO )
+
 import SGE.Image ( RGBA, convertRGBA )
 import qualified SGE.Renderer ( ContextPtr, DevicePtr, RawContextPtr, RawDevicePtr )
 import SGE.Pos ( Pos, posX, posY )
