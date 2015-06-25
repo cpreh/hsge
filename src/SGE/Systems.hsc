@@ -4,6 +4,7 @@ module SGE.Systems (
        InstancePtr,
        audioLoader,
        audioPlayer,
+       cursor,
        fontSystem,
        imageSystem,
        keyboard,
@@ -32,7 +33,7 @@ import System.IO.Unsafe ( unsafeDupablePerformIO )
 import qualified SGE.Audio ( LoaderPtr, PlayerPtr, RawLoaderPtr, RawPlayerPtr )
 import qualified SGE.Font ( RawSystemPtr, SystemPtr )
 import qualified SGE.Image2D ( RawSystemPtr, SystemPtr )
-import qualified SGE.Input ( RawKeyboardPtr, KeyboardPtr )
+import qualified SGE.Input ( CursorPtr, KeyboardPtr, RawCursorPtr, RawKeyboardPtr )
 import qualified SGE.Renderer ( RawDevicePtr, DevicePtr )
 import SGE.Dim ( Dim(..), dimW, dimH )
 import SGE.Utils ( failMaybe, toCUInt )
@@ -78,6 +79,11 @@ foreign import ccall unsafe "sgec_systems_instance_window_system" sgeSystemsWind
 
 windowSystem :: InstancePtr -> SGE.Window.SystemPtr
 windowSystem = extractSystem sgeSystemsWindowSystem
+
+foreign import ccall unsafe "sgec_systems_instance_cursor" sgeSystemsCursor :: RawInstancePtr -> SGE.Input.RawCursorPtr
+
+cursor :: InstancePtr -> SGE.Input.CursorPtr
+cursor = extractSystem sgeSystemsCursor
 
 foreign import ccall unsafe "sgec_systems_instance_keyboard" sgeSystemsKeyboard :: RawInstancePtr -> SGE.Input.RawKeyboardPtr
 
