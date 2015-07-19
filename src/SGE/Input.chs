@@ -11,6 +11,7 @@ module SGE.Input (
        RawKeyboardPtr,
        RawCursorPtr,
        withCursorButtonCallback,
+       withCursorMoveCallback,
        withKeyCallback,
        withKeyRepeatCallback
 )
@@ -50,6 +51,10 @@ type WrappedCursorButtonCallback = CInt -> CInt -> CInt -> CInt -> Ptr() -> IO (
 type RawCursorButtonCallback = FunPtr WrappedCursorButtonCallback
 type CursorButtonCallback = CursorButtonCode -> CursorButtonState -> SGE.Pos.Pos -> IO ()
 
+type WrappedCursorMoveCallback = CInt -> CInt -> Ptr() -> IO ()
+type RawCursorMoveCallback = FunPtr WrappedCursorMoveCallback
+type CursorMoveCallback = SGE.Pos.Pos -> IO ()
+
 data KeyboardStruct
 type RawKeyboardPtr = Ptr KeyboardStruct
 type KeyboardPtr = ForeignPtr KeyboardStruct
@@ -86,6 +91,24 @@ connectCursorButtonCallbackExn cursor callback =
 withCursorButtonCallback :: CursorPtr -> CursorButtonCallback -> IO a -> IO a
 withCursorButtonCallback cursor callback function =
                          bracket (connectCursorButtonCallbackExn cursor callback) SGE.Signal.destroyCallback (\_ -> function)
+
+foreign import ccall unsafe "sgec_input_cursor_object_connect_move_callback" sgeConnectCursorMove :: RawCursorPtr -> RawCursorMoveCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
+foreign import ccall unsafe "wrapper" wrapCursorMoveCallback :: WrappedCursorMoveCallback -> IO RawCursorMoveCallback
+
+connectCursorMoveCallback :: CursorPtr -> CursorMoveCallback -> IO (Maybe (SGE.Signal.ConnectionPtr, RawCursorMoveCallback))
+connectCursorMoveCallback cursor callback =
+                            withForeignPtr cursor $ \cp -> do
+                                           rawCallback <- wrapCursorMoveCallback $ \px -> \py -> \_ -> callback (SGE.Pos.Pos (fromCInt px, fromCInt py))
+                                           wrappedCallback <- sgeConnectCursorMove cp rawCallback nullPtr
+                                           maybePeek (SGE.Signal.makeCallbackState rawCallback) wrappedCallback
+
+connectCursorMoveCallbackExn :: CursorPtr -> CursorMoveCallback -> IO (SGE.Signal.ConnectionPtr, RawCursorMoveCallback)
+connectCursorMoveCallbackExn cursor callback =
+                               failMaybe "connect cursor move callback" (connectCursorMoveCallback cursor callback)
+
+withCursorMoveCallback :: CursorPtr -> CursorMoveCallback -> IO a -> IO a
+withCursorMoveCallback cursor callback function =
+                         bracket (connectCursorMoveCallbackExn cursor callback) SGE.Signal.destroyCallback (\_ -> function)
 
 foreign import ccall unsafe "sgec_input_keyboard_device_connect_key_callback" sgeConnectKey :: RawKeyboardPtr -> RawKeyCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
 foreign import ccall unsafe "wrapper" wrapKeyCallback :: WrappedKeyCallback -> IO RawKeyCallback
