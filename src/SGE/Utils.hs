@@ -4,6 +4,7 @@ module SGE.Utils (
        failResultIO,
        failWithMessage,
        fromCInt,
+       fromCLong,
        fromCUInt,
        fromCSize,
        maybeString,
@@ -23,7 +24,7 @@ import Data.Int ( Int )
 import Data.Maybe ( Maybe(Just, Nothing) )
 import Data.Word ( Word8 )
 import Data.String ( String )
-import Foreign.C ( CFloat, CInt, CUChar, CUInt, CSize )
+import Foreign.C ( CFloat, CInt, CLong, CSize, CUChar, CUInt )
 import Foreign.C.String ( CString, withCString )
 import Foreign.Ptr ( nullPtr )
 import Prelude ( Enum(toEnum), Float, Integral, fromIntegral, realToFrac )
@@ -56,6 +57,9 @@ failResultIO message action =
 
 fromCInt :: Integral a => CInt -> a
 fromCInt = fromIntegral
+
+fromCLong :: Integral a => CLong -> a
+fromCLong = fromIntegral
 
 fromCUInt :: Integral a => CUInt -> a
 fromCUInt = fromIntegral
