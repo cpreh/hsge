@@ -13,22 +13,26 @@ module SGE.Systems (
        with
 )
 
+#include <sgec/systems/cursor_option.h>
 #include <sgec/systems/instance.h>
 
 where
 
 import Control.Exception( bracket )
 import Control.Monad ( (>>=) )
+import Data.Eq ( Eq )
 import Data.Function ( ($) )
 import Data.Maybe ( Maybe, fromMaybe )
 import Data.String ( String )
 import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
 import Foreign.C ( CString, withCString )
-import Foreign.C.Types ( CUInt(..) )
+import Foreign.C.Types ( CInt(..), CUInt(..) )
 import Foreign.Marshal.Utils ( maybePeek )
 import Foreign.Ptr ( Ptr )
+import Prelude ( Enum (fromEnum)  )
 import System.IO ( IO )
 import System.IO.Unsafe ( unsafeDupablePerformIO )
+import Text.Show ( Show )
 
 import qualified SGE.Audio ( LoaderPtr, PlayerPtr, RawLoaderPtr, RawPlayerPtr )
 import qualified SGE.Font ( RawSystemPtr, SystemPtr )
@@ -36,35 +40,35 @@ import qualified SGE.Image2D ( RawSystemPtr, SystemPtr )
 import qualified SGE.Input ( CursorPtr, KeyboardPtr, RawCursorPtr, RawKeyboardPtr )
 import qualified SGE.Renderer ( RawDevicePtr, DevicePtr )
 import SGE.Dim ( Dim(..), dimW, dimH )
-import SGE.Utils ( failMaybe, toCUInt )
+import SGE.Utils ( failMaybe, toCInt, toCUInt )
 import qualified SGE.Window ( RawSystemPtr, SystemPtr )
 
 data InstanceStruct
-
 type RawInstancePtr = Ptr InstanceStruct
-
 type InstancePtr = ForeignPtr InstanceStruct
 
-foreign import ccall unsafe "sgec_systems_instance_create" sgeSystemsCreate :: CString -> CUInt -> CUInt -> IO RawInstancePtr
+{#enum sgec_systems_cursor_option as CursorOption {underscoreToCase} with prefix = "sgec_systems_cursor_option" add prefix = "CursorOption" deriving (Eq, Show)#}
+
+foreign import ccall unsafe "sgec_systems_instance_create" sgeSystemsCreate :: CString -> CUInt -> CUInt -> CInt -> IO RawInstancePtr
 
 foreign import ccall unsafe "sgec_systems_instance_destroy" sgeSystemsDestroy :: RawInstancePtr -> IO ()
 
-create :: String -> Maybe Dim -> IO (Maybe InstancePtr)
-create title dim =
+create :: String -> Maybe Dim -> CursorOption -> IO (Maybe InstancePtr)
+create title dim cursorOption =
        let realDim = fromMaybe (Dim (0,0)) dim in
        withCString title $ \titlePtr ->
-       sgeSystemsCreate titlePtr (toCUInt (dimW realDim)) (toCUInt (dimH realDim))
+       sgeSystemsCreate titlePtr (toCUInt (dimW realDim)) (toCUInt (dimH realDim)) (toCInt (fromEnum cursorOption))
        >>= maybePeek newForeignPtr_
 
-createExn :: String -> Maybe Dim -> IO (InstancePtr)
-createExn title dim = failMaybe "create system instance" (create title dim)
+createExn :: String -> Maybe Dim -> CursorOption -> IO (InstancePtr)
+createExn title dim cursorOption = failMaybe "create system instance" (create title dim cursorOption)
 
 destroy :: InstancePtr -> IO ()
 destroy ptr = withForeignPtr ptr sgeSystemsDestroy
 
-with :: String -> Maybe Dim -> (InstancePtr -> IO a) -> IO a
-with title dim func =
-     bracket (createExn title dim) destroy func
+with :: String -> Maybe Dim -> CursorOption -> (InstancePtr -> IO a) -> IO a
+with title dim cursorOption func =
+     bracket (createExn title dim cursorOption) destroy func
 
 extractSystem :: (RawInstancePtr -> Ptr a) -> InstancePtr -> ForeignPtr a
 extractSystem func inst =
