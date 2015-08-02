@@ -22,6 +22,7 @@ import Prelude ( Float )
 import System.IO ( IO )
 
 import SGE.Dim ( Dim(..), dimW, dimH )
+import SGE.Image ( RGBA, convertRGBA )
 import SGE.Pos ( Pos, posX, posY )
 import SGE.Renderer ( ContextPtr, DevicePtr, RawContextPtr, RawDevicePtr )
 import SGE.Texture ( PartPtr, RawPartPtr )
@@ -33,14 +34,16 @@ data RawObject = RawObject {
      raw_y :: CInt,
      raw_w :: CInt,
      raw_h :: CInt,
-     raw_rotation :: CFloat
+     raw_rotation :: CFloat,
+     raw_color :: CUInt
 } deriving(Eq)
 
 data Object = Object {
      pos :: Pos,
      dim :: Dim,
      rotation :: Float,
-     texture :: PartPtr
+     texture :: PartPtr,
+     color :: RGBA
 } deriving(Eq)
 
 #let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
@@ -55,14 +58,16 @@ instance Storable RawObject where
               w <- (#peek struct sgec_sprite_object, width) ptr
               h <- (#peek struct sgec_sprite_object, height) ptr
               r <- (#peek struct sgec_sprite_object, rotation) ptr
-              return $ RawObject { raw_x = x, raw_y = y, raw_w = w, raw_h = h, raw_rotation = r, raw_tex = tex }
-         poke ptr (RawObject tex x y w h r) = do
+              c <- (#peek struct sgec_sprite_object, color) ptr
+              return $ RawObject { raw_x = x, raw_y = y, raw_w = w, raw_h = h, raw_rotation = r, raw_tex = tex, raw_color = c }
+         poke ptr (RawObject tex x y w h r c) = do
               (#poke struct sgec_sprite_object, texture) ptr tex
               (#poke struct sgec_sprite_object, pos_x) ptr x
               (#poke struct sgec_sprite_object, pos_y) ptr y
               (#poke struct sgec_sprite_object, width) ptr w
               (#poke struct sgec_sprite_object, height) ptr h
               (#poke struct sgec_sprite_object, rotation) ptr r
+              (#poke struct sgec_sprite_object, color) ptr c
 
 foreign import ccall unsafe "sgec_sprite_draw" sgeSpriteDraw :: RawDevicePtr -> RawContextPtr -> CUInt -> CUInt -> Ptr RawObject -> CSize -> IO ()
 
@@ -75,7 +80,8 @@ draw device context d sprites =
          raw_y = toCInt $ posY $ pos obj,
          raw_w = toCInt $ dimW $ dim obj,
          raw_h = toCInt $ dimH $ dim obj,
-         raw_rotation = toCFloat $ rotation obj
+         raw_rotation = toCFloat $ rotation obj,
+         raw_color = convertRGBA $ color obj
      } in
        withArrayLen (map toRawObject sprites) $
        \length -> \array -> withForeignPtr device $

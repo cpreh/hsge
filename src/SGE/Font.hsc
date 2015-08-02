@@ -22,6 +22,7 @@ import Control.Exception( bracket )
 import Control.Monad ( (>>=) )
 import Data.Function ( ($) )
 import Data.Int ( Int )
+import Data.List ( (++) )
 import Data.Maybe ( Maybe, fromMaybe )
 import Data.String ( String )
 import Foreign ( ForeignPtr, newForeignPtr_, withForeignPtr )
@@ -81,7 +82,7 @@ addFont system path =
 
 addFontExn :: SystemPtr -> String -> IO AddedPtr
 addFontExn system path =
-           failMaybe "addFont" (addFont system path)
+           failMaybe ("addFont " ++ path) (addFont system path)
 
 foreign import ccall unsafe "sgec_font_added_destroy" sgeDestroyAdded :: RawAddedPtr -> IO ()
 

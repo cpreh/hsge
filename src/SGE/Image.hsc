@@ -8,6 +8,7 @@ module SGE.Image (
 
 where
 
+import Data.Eq ( Eq )
 import Data.Function ( ($) )
 import Data.Word ( Word8 )
 import Foreign.C ( CUChar(..), CUInt(..) )
@@ -20,6 +21,7 @@ data RGBA = RGBA {
    , colorBlue :: Word8
    , colorAlpha :: Word8
 }
+        deriving(Eq)
 
 foreign import ccall unsafe "sgec_image_color_make_rgba" sgeMakeRGBA :: CUChar -> CUChar -> CUChar -> CUChar -> CUInt
 
