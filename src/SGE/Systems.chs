@@ -6,6 +6,7 @@ module SGE.Systems (
        audioLoader,
        audioPlayer,
        cursor,
+       focus,
        fontSystem,
        imageSystem,
        keyboard,
@@ -39,7 +40,7 @@ import Text.Show ( Show )
 import qualified SGE.Audio ( LoaderPtr, PlayerPtr, RawLoaderPtr, RawPlayerPtr )
 import qualified SGE.Font ( RawSystemPtr, SystemPtr )
 import qualified SGE.Image2D ( RawSystemPtr, SystemPtr )
-import qualified SGE.Input ( CursorPtr, KeyboardPtr, MousePtr, RawCursorPtr, RawKeyboardPtr, RawMousePtr )
+import qualified SGE.Input ( CursorPtr, FocusPtr, KeyboardPtr, MousePtr, RawCursorPtr, RawFocusPtr, RawKeyboardPtr, RawMousePtr )
 import qualified SGE.Renderer ( RawDevicePtr, DevicePtr )
 import SGE.Dim ( Dim(..), dimW, dimH )
 import SGE.Utils ( failMaybe, toCInt, toCUInt )
@@ -90,6 +91,11 @@ foreign import ccall unsafe "sgec_systems_instance_cursor" sgeSystemsCursor :: R
 
 cursor :: InstancePtr -> SGE.Input.CursorPtr
 cursor = extractSystem sgeSystemsCursor
+
+foreign import ccall unsafe "sgec_systems_instance_focus" sgeSystemsFocus :: RawInstancePtr -> SGE.Input.RawFocusPtr
+
+focus :: InstancePtr -> SGE.Input.FocusPtr
+focus = extractSystem sgeSystemsFocus
 
 foreign import ccall unsafe "sgec_systems_instance_keyboard" sgeSystemsKeyboard :: RawInstancePtr -> SGE.Input.RawKeyboardPtr
 

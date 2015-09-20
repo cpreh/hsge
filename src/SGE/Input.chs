@@ -4,15 +4,18 @@ module SGE.Input (
        CursorButtonState(..),
        CursorPtr,
        CursorScrollCode(..),
+       FocusPtr,
+       FocusKeyCallback,
        KeyboardPtr,
-       KeyCallback,
        KeyRepeatCallback,
-       KeyboardKey(..),
+       KeyboardKeyCallback,
+       KeyCode(..),
        KeyState(..),
        MouseAxisCode(..),
        MouseButtonCode(..),
        MousePtr,
        RawCursorPtr,
+       RawFocusPtr,
        RawKeyboardPtr,
        RawMousePtr,
        connectCursorButtonCallback,
@@ -21,19 +24,22 @@ module SGE.Input (
        connectCursorMoveCallbackExn,
        connectCursorScrollCallback,
        connectCursorScrollCallbackExn,
+       connectFocusKeyCallback,
+       connectFocusKeyCallbackExn,
        connectMouseAxisCallback,
        connectMouseAxisCallbackExn,
        connectMouseButtonCallback,
        connectMouseButtonCallbackExn,
-       connectKeyCallback,
-       connectKeyCallbackExn,
        connectKeyRepeatCallback,
        connectKeyRepeatCallbackExn,
+       connectKeyboardKeyCallback,
+       connectKeyboardKeyCallbackExn,
        withCursorButtonCallback,
        withCursorMoveCallback,
        withCursorScrollCallback,
-       withKeyCallback,
+       withFocusKeyCallback,
        withKeyRepeatCallback,
+       withKeyboardKeyCallback,
        withMouseAxisCallback,
        withMouseButtonCallback
 )
@@ -42,13 +48,14 @@ module SGE.Input (
 #include <sgec/input/cursor/button_state.h>
 #include <sgec/input/cursor/object.h>
 #include <sgec/input/cursor/scroll_code.h>
+#include <sgec/input/focus/object.h>
 #include <sgec/input/mouse/axis_code.h>
 #include <sgec/input/mouse/button_code.h>
 #include <sgec/input/mouse/button_state.h>
 #include <sgec/input/mouse/device.h>
+#include <sgec/input/key/code.h>
+#include <sgec/input/key/state.h>
 #include <sgec/input/keyboard/device.h>
-#include <sgec/input/keyboard/key_code.h>
-#include <sgec/input/keyboard/key_state.h>
 
 where
 
@@ -60,7 +67,7 @@ import Data.List ( (++) )
 import Data.Maybe ( Maybe )
 import Data.Ord ( compare, Ordering(EQ, LT, GT))
 import Foreign ( ForeignPtr, withForeignPtr )
-import Foreign.C ( CInt(..), CLong(..) )
+import Foreign.C ( CInt(..), CLong(..), CUInt(..) )
 import Foreign.Marshal.Utils ( maybePeek )
 import Foreign.Ptr ( FunPtr, Ptr, nullPtr )
 import Prelude ( Enum (enumFromTo, enumFrom, fromEnum, pred, succ, toEnum),  error )
@@ -69,21 +76,22 @@ import Text.Show ( Show, show )
 
 import qualified SGE.Pos ( Pos(..) )
 import qualified SGE.Signal ( ConnectionPtr, RawConnectionPtr, destroyCallback, makeCallbackState )
-import SGE.Utils ( failMaybe, fromCInt, fromCLong )
+import SGE.Utils ( failMaybe, fromCInt, fromCLong, fromCUInt )
 
 
 {#enum sgec_input_cursor_button_code as CursorButtonCode {underscoreToCase} with prefix = "sgec_input_cursor_button_code" add prefix = "CursorButtonCode" deriving (Eq, Show)#}
 {#enum sgec_input_cursor_button_state as CursorButtonState {underscoreToCase} with prefix = "sgec_input_cursor_button_state" add prefix = "CursorButtonState" deriving (Eq, Show)#}
 {#enum sgec_input_cursor_scroll_code as CursorScrollCode {underscoreToCase} with prefix = "sgec_input_cursor_scroll_code" add prefix = "CursorScrollCode" deriving (Eq, Show)#}
 
-{#enum sgec_input_keyboard_key_code as KeyboardKey {underscoreToCase} with prefix = "sgec_input_keyboard_key_code" add prefix = "KeyboardKey" deriving (Eq, Show)#}
-{#enum sgec_input_keyboard_key_state as KeyState {underscoreToCase} with prefix = "sgec_input_keyboard_key_state" add prefix = "KeyState" deriving (Eq, Show)#}
+{#enum sgec_input_key_code as KeyCode {underscoreToCase} with prefix = "sgec_input_key_code" add prefix = "KeyCode" deriving (Eq, Show)#}
+{#enum sgec_input_key_state as KeyState {underscoreToCase} with prefix = "sgec_input_key_state" add prefix = "KeyState" deriving (Eq, Show)#}
 
 {#enum sgec_input_mouse_axis_code as MouseAxisCode {underscoreToCase} with prefix = "sgec_input_mouse_axis_code" add prefix = "MouseAxisCode" deriving (Eq, Show)#}
 {#enum sgec_input_mouse_button_code as MouseButtonCode {underscoreToCase} with prefix = "sgec_input_mouse_button_code" add prefix = "MouseButtonCode" deriving (Eq, Show)#}
 {#enum sgec_input_mouse_button_state as MouseButtonState {underscoreToCase} with prefix = "sgec_input_mouse_button_state" add prefix = "MouseButtonState" deriving (Eq, Show)#}
 
 
+-- Cursor
 data CursorStruct
 type RawCursorPtr = Ptr CursorStruct
 type CursorPtr = ForeignPtr CursorStruct
@@ -101,19 +109,31 @@ type RawCursorScrollCallback = FunPtr WrappedCursorScrollCallback
 type CursorScrollCallback = CursorScrollCode -> Int -> IO ()
 
 
+-- Focus
+data FocusStruct
+type RawFocusPtr = Ptr FocusStruct
+type FocusPtr = ForeignPtr FocusStruct
+
+type WrappedFocusKeyCallback = CInt -> CInt -> Ptr () -> IO ()
+type RawFocusKeyCallback = FunPtr WrappedFocusKeyCallback
+type FocusKeyCallback = KeyCode -> KeyState -> IO ()
+
+type WrappedKeyRepeatCallback = CInt -> Ptr () -> IO ()
+type RawKeyRepeatCallback = FunPtr WrappedKeyRepeatCallback
+type KeyRepeatCallback = KeyCode -> IO ()
+
+
+-- Keyboard
 data KeyboardStruct
 type RawKeyboardPtr = Ptr KeyboardStruct
 type KeyboardPtr = ForeignPtr KeyboardStruct
 
-type WrappedKeyCallback = CInt -> CInt -> Ptr () -> IO ()
-type RawKeyCallback = FunPtr WrappedKeyCallback
-type KeyCallback = KeyboardKey -> KeyState -> IO ()
-
-type WrappedKeyRepeatCallback = CInt -> Ptr () -> IO ()
-type RawKeyRepeatCallback = FunPtr WrappedKeyRepeatCallback
-type KeyRepeatCallback = KeyboardKey -> IO ()
+type WrappedKeyboardKeyCallback = CInt -> CInt -> CUInt -> Ptr () -> IO ()
+type RawKeyboardKeyCallback = FunPtr WrappedKeyboardKeyCallback
+type KeyboardKeyCallback = KeyCode -> KeyState -> Int -> IO ()
 
 
+-- Mouse
 data MouseStruct
 type RawMousePtr = Ptr MouseStruct
 type MousePtr = ForeignPtr MouseStruct
@@ -127,6 +147,7 @@ type RawMouseButtonCallback = FunPtr WrappedMouseButtonCallback
 type MouseButtonCallback = MouseButtonCode -> MouseButtonState -> IO ()
 
 
+-- Cursor
 foreign import ccall unsafe "sgec_input_cursor_object_connect_button_callback" sgeConnectCursorButton :: RawCursorPtr -> RawCursorButtonCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
 foreign import ccall unsafe "wrapper" wrapCursorButtonCallback :: WrappedCursorButtonCallback -> IO RawCursorButtonCallback
 
@@ -182,44 +203,66 @@ withCursorScrollCallback cursor callback function =
                          bracket (connectCursorScrollCallbackExn cursor callback) SGE.Signal.destroyCallback (\_ -> function)
 
 
-foreign import ccall unsafe "sgec_input_keyboard_device_connect_key_callback" sgeConnectKey :: RawKeyboardPtr -> RawKeyCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
-foreign import ccall unsafe "wrapper" wrapKeyCallback :: WrappedKeyCallback -> IO RawKeyCallback
+-- Focus
+foreign import ccall unsafe "sgec_input_focus_object_connect_key_callback" sgeConnectFocusKey :: RawFocusPtr -> RawFocusKeyCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
+foreign import ccall unsafe "wrapper" wrapFocusKeyCallback :: WrappedFocusKeyCallback -> IO RawFocusKeyCallback
 
-connectKeyCallback :: KeyboardPtr -> KeyCallback -> IO (Maybe (SGE.Signal.ConnectionPtr, RawKeyCallback))
-connectKeyCallback keyboard callback =
-                   withForeignPtr keyboard $ \kp -> do
-                                  rawCallback <- wrapKeyCallback $ \key -> \value -> \_ -> callback (toEnum $ fromCInt key) (toEnum $ fromCInt value)
-                                  wrappedCallback <- sgeConnectKey kp rawCallback nullPtr
-                                  maybePeek (SGE.Signal.makeCallbackState rawCallback) wrappedCallback
+connectFocusKeyCallback :: FocusPtr -> FocusKeyCallback -> IO (Maybe (SGE.Signal.ConnectionPtr, RawFocusKeyCallback))
+connectFocusKeyCallback focus callback =
+                        withForeignPtr focus $ \kp -> do
+                                       rawCallback <- wrapFocusKeyCallback $ \key -> \value -> \_ -> callback (toEnum $ fromCInt key) (toEnum $ fromCInt value)
+                                       wrappedCallback <- sgeConnectFocusKey kp rawCallback nullPtr
+                                       maybePeek (SGE.Signal.makeCallbackState rawCallback) wrappedCallback
 
-connectKeyCallbackExn :: KeyboardPtr -> KeyCallback -> IO (SGE.Signal.ConnectionPtr, RawKeyCallback)
-connectKeyCallbackExn keyboard callback =
-                      failMaybe "connect key callback" (connectKeyCallback keyboard callback)
+connectFocusKeyCallbackExn :: FocusPtr -> FocusKeyCallback -> IO (SGE.Signal.ConnectionPtr, RawFocusKeyCallback)
+connectFocusKeyCallbackExn focus callback =
+                              failMaybe "connect focus key callback" (connectFocusKeyCallback focus callback)
 
-withKeyCallback :: KeyboardPtr -> KeyCallback -> IO a -> IO a
-withKeyCallback keyboard callback function =
-                bracket (connectKeyCallbackExn keyboard callback) SGE.Signal.destroyCallback (\_ -> function)
+withFocusKeyCallback :: FocusPtr -> FocusKeyCallback -> IO a -> IO a
+withFocusKeyCallback focus callback function =
+                        bracket (connectFocusKeyCallbackExn focus callback) SGE.Signal.destroyCallback (\_ -> function)
 
 
-foreign import ccall unsafe "sgec_input_keyboard_device_connect_key_repeat_callback" sgeConnectRepeatKey :: RawKeyboardPtr -> RawKeyRepeatCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
+foreign import ccall unsafe "sgec_input_focus_object_connect_key_repeat_callback" sgeConnectFocusKeyRepeat :: RawFocusPtr -> RawKeyRepeatCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
 foreign import ccall unsafe "wrapper" wrapKeyRepeatCallback :: WrappedKeyRepeatCallback -> IO RawKeyRepeatCallback
 
-connectKeyRepeatCallback :: KeyboardPtr -> KeyRepeatCallback -> IO (Maybe (SGE.Signal.ConnectionPtr, RawKeyRepeatCallback))
-connectKeyRepeatCallback keyboard callback =
-                         withForeignPtr keyboard $ \kp -> do
+connectKeyRepeatCallback :: FocusPtr -> KeyRepeatCallback -> IO (Maybe (SGE.Signal.ConnectionPtr, RawKeyRepeatCallback))
+connectKeyRepeatCallback focus callback =
+                         withForeignPtr focus $ \kp -> do
                                         rawCallback <- wrapKeyRepeatCallback $ \key -> \_ -> callback (toEnum $ fromCInt key)
-                                        wrappedCallback <- sgeConnectRepeatKey kp rawCallback nullPtr
+                                        wrappedCallback <- sgeConnectFocusKeyRepeat kp rawCallback nullPtr
                                         maybePeek (SGE.Signal.makeCallbackState rawCallback) wrappedCallback
 
-connectKeyRepeatCallbackExn :: KeyboardPtr -> KeyRepeatCallback -> IO (SGE.Signal.ConnectionPtr, RawKeyRepeatCallback)
-connectKeyRepeatCallbackExn keyboard callback =
-                            failMaybe "connect key callback" (connectKeyRepeatCallback keyboard callback)
+connectKeyRepeatCallbackExn :: FocusPtr -> KeyRepeatCallback -> IO (SGE.Signal.ConnectionPtr, RawKeyRepeatCallback)
+connectKeyRepeatCallbackExn focus callback =
+                            failMaybe "connect key callback" (connectKeyRepeatCallback focus callback)
 
-withKeyRepeatCallback :: KeyboardPtr -> KeyRepeatCallback -> IO a -> IO a
-withKeyRepeatCallback keyboard callback function =
-                      bracket (connectKeyRepeatCallbackExn keyboard callback) SGE.Signal.destroyCallback (\_ -> function)
+withKeyRepeatCallback :: FocusPtr -> KeyRepeatCallback -> IO a -> IO a
+withKeyRepeatCallback focus callback function =
+                      bracket (connectKeyRepeatCallbackExn focus callback) SGE.Signal.destroyCallback (\_ -> function)
 
 
+-- Keyboard
+foreign import ccall unsafe "sgec_input_keyboard_device_connect_key_callback" sgeConnectKeyboardKey :: RawKeyboardPtr -> RawKeyboardKeyCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
+foreign import ccall unsafe "wrapper" wrapKeyboardKeyCallback :: WrappedKeyboardKeyCallback -> IO RawKeyboardKeyCallback
+
+connectKeyboardKeyCallback :: KeyboardPtr -> KeyboardKeyCallback -> IO (Maybe (SGE.Signal.ConnectionPtr, RawKeyboardKeyCallback))
+connectKeyboardKeyCallback keyboard callback =
+                           withForeignPtr keyboard $ \kp -> do
+                                          rawCallback <- wrapKeyboardKeyCallback $ \key -> \value -> \id -> \_ -> callback (toEnum $ fromCInt key) (toEnum $ fromCInt value) (fromCUInt id)
+                                          wrappedCallback <- sgeConnectKeyboardKey kp rawCallback nullPtr
+                                          maybePeek (SGE.Signal.makeCallbackState rawCallback) wrappedCallback
+
+connectKeyboardKeyCallbackExn :: KeyboardPtr -> KeyboardKeyCallback -> IO (SGE.Signal.ConnectionPtr, RawKeyboardKeyCallback)
+connectKeyboardKeyCallbackExn keyboard callback =
+                              failMaybe "connect keyboard key callback" (connectKeyboardKeyCallback keyboard callback)
+
+withKeyboardKeyCallback :: KeyboardPtr -> KeyboardKeyCallback -> IO a -> IO a
+withKeyboardKeyCallback keyboard callback function =
+                        bracket (connectKeyboardKeyCallbackExn keyboard callback) SGE.Signal.destroyCallback (\_ -> function)
+
+
+-- Mouse
 foreign import ccall unsafe "sgec_input_mouse_device_connect_axis_callback" sgeConnectMouseAxis :: RawMousePtr -> RawMouseAxisCallback -> Ptr () -> IO (SGE.Signal.RawConnectionPtr)
 foreign import ccall unsafe "wrapper" wrapMouseAxisCallback :: WrappedMouseAxisCallback -> IO RawMouseAxisCallback
 
