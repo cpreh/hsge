@@ -46,8 +46,6 @@ data Object = Object {
      color :: RGBA
 } deriving(Eq)
 
-#let alignment t = "%lu", (unsigned long)offsetof(struct {char x__; t (y__); }, y__)
-
 instance Storable RawObject where
          sizeOf _ = (#size struct sgec_sprite_object)
          alignment _ = (#alignment struct sgec_sprite_object)
